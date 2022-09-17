@@ -1,2 +1,2 @@
 # influshop-backend
-Backend of the ecommerce application influshop
+Backend of the ecommerce application influshop.
