@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/barisbll/influshop-backend#readme",
   "devDependencies": {
+    "@types/compression": "^1.7.2",
+    "@types/convict": "^6.1.1",
     "@types/express": "^4.17.14",
     "@types/morgan": "^1.9.3",
     "@types/node": "^18.7.18",
@@ -37,6 +39,7 @@
   },
   "dependencies": {
     "compression": "^1.7.4",
+    "convict": "^6.2.3",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
     "morgan": "^1.10.0",
