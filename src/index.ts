@@ -3,6 +3,7 @@ import express from 'express';
 import logger from './config/logger';
 import morganMiddleware from './config/morgan';
 import config from './config/config';
+import AppDataSource from './config/data-source';
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.get('/logger', (_, res) => {
   res.send('Hello world');
 });
 
-app.listen(() => {
-  logger.info(`Server is up and running @ http://localhost:${config.port}`);
+AppDataSource.initialize().then(() => {
+  app.listen(config.port, () => {
+    logger.info(`Server started at http://localhost:${config.port}`);
+  });
 });

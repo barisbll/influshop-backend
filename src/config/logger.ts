@@ -6,10 +6,7 @@ import colors from './logger.config';
 const { combine, errors, timestamp, json, colorize, printf } = winston.format;
 winston.addColors(colors);
 
-const dailyRotateFileCreator = (
-  name: string,
-  level: string = 'http',
-) =>
+const dailyRotateFileCreator = (name: string, level: string = 'http') =>
   new winston.transports.DailyRotateFile({
     filename: resolve(__dirname, '..', '..', 'logs', `${name}-%DATE%.log`),
     level,
@@ -37,10 +34,23 @@ if (process.env.NODE_ENV === 'development') {
         timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
         colorize({ all: true }),
         printf((info) => {
-          if (!info.level.includes('http')) {
-            return `${info.timestamp} ${info.level}: ${info.message}`;
+          if (info.level.includes('http')) {
+            return `${info.timestamp} ${info.level}: ${info.message}${info.method} ${info.url} ${info.status} resp_time: ${info.response_time} `;
           }
-          return `${info.timestamp} ${info.level}: ${info.message}${info.method} ${info.url} ${info.status} resp_time: ${info.response_time} `;
+          if (
+            info.message.includes('typeorm:log') ||
+            info.message.includes('typeorm:schema-build') ||
+            info.message.includes('typeorm:migration')
+          ) {
+            return `${info.timestamp} ${info.level}: ${info.message} ${info.msg}`;
+          }
+          if (info.message.includes('typeorm:error')) {
+            return `${info.timestamp} ${info.level}: ${info.message} ${info.error} ${info.query} ${info.parameters}`;
+          }
+          if (info.message.includes('typeorm:slow')) {
+            return `${info.timestamp} ${info.level}: ${info.message} ${info.time} ${info.query} ${info.parameters}`;
+          }
+          return `${info.timestamp} ${info.level}: ${info.message}`;
         }),
       ),
     }),

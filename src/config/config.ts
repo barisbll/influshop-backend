@@ -33,6 +33,11 @@ const tempConfig = convict({
       default: '',
       env: 'DATABASE_HOST',
     },
+    port: {
+      env: 'DATABASE_PORT',
+      format: 'port',
+      default: 5432,
+    },
     username: {
       format: nonEmptyString('DATABASE_USERNAME'),
       default: 'postgres',
@@ -47,6 +52,11 @@ const tempConfig = convict({
       format: nonEmptyString('DATABASE_DATABASE'),
       default: 'influshop',
       env: 'DATABASE_DATABASE',
+    },
+    ssl: {
+      env: 'DATABASE_SSL',
+      default: false,
+      format: Boolean,
     },
   },
 });
