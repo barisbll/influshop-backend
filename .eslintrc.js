@@ -23,6 +23,8 @@ module.exports = {
     ],
     'object-curly-newline': 'off',
     'implicit-arrow-linebreak': 'off',
+    'operator-linebreak': 'off',
+    indent: 'off',
   },
   settings: {
     'import/resolver': {

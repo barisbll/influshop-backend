@@ -1,10 +1,12 @@
+import compression from 'compression';
 import express from 'express';
 import logger from './config/logger';
 import morganMiddleware from './config/morgan';
+import config from './config/config';
 
 const app = express();
-const PORT = 3000;
 
+app.use(compression());
 app.use(morganMiddleware);
 
 app.get('/logger', (_, res) => {
@@ -16,6 +18,6 @@ app.get('/logger', (_, res) => {
   res.send('Hello world');
 });
 
-app.listen(PORT, () => {
-  logger.info(`Server is up and running @ http://localhost:${PORT}`);
+app.listen(() => {
+  logger.info(`Server is up and running @ http://localhost:${config.port}`);
 });
