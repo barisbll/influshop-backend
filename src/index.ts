@@ -1,14 +1,12 @@
 import compression from 'compression';
 import express from 'express';
+import cors from 'cors';
 import logger from './config/logger';
 import morganMiddleware from './config/morgan';
 import config from './config/config';
 import AppDataSource from './config/data-source';
 
 const app = express();
-
-app.use(compression());
-app.use(morganMiddleware);
 
 app.get('/logger', (_, res) => {
   logger.error('This is an error log');
@@ -19,8 +17,22 @@ app.get('/logger', (_, res) => {
   res.send('Hello world');
 });
 
-AppDataSource.initialize().then(() => {
-  app.listen(config.port, () => {
-    logger.info(`Server started at http://localhost:${config.port}`);
-  });
-});
+const main = () => {
+  try {
+    app.use(express.json());
+    app.use(cors());
+    app.use(compression());
+    app.use(morganMiddleware);
+
+    AppDataSource.initialize().then(() => {
+      app.listen(config.port, () => {
+        logger.info(`Server started at http://localhost:${config.port}`);
+      });
+    });
+  } catch (error) {
+    logger.error(error);
+    throw error;
+  }
+};
+
+main();
