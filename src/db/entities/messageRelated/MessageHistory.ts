@@ -1,6 +1,7 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
+  Column,
   OneToMany,
   ManyToOne,
   CreateDateColumn,
@@ -16,13 +17,25 @@ export default class MessageHistory {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
+  @Column({
+    default: false,
+  })
+  isUserDeleted?: boolean;
+
+  @Column({
+    default: false,
+  })
+  isInfluencerDeleted?: boolean;
+
   @CreateDateColumn()
   createdAt?: Date;
 
   @UpdateDateColumn()
   updatedAt?: Date;
 
-  @OneToMany(() => Message, (message) => message.messageHistory)
+  @OneToMany(() => Message, (message) => message.messageHistory, {
+    onDelete: 'CASCADE',
+  })
   messages?: Message[];
 
   @ManyToOne(() => User, (user) => user.messageHistories)

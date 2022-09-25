@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
 import Cart from './Cart';
 import Item from '../itemRelated/Item';
 
@@ -9,6 +9,9 @@ export default class CartItem {
 
   @Column()
   quantity?: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => Cart, (cart) => cart.cartItems, {
     onDelete: 'CASCADE',

@@ -3,6 +3,7 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
+  DeleteDateColumn,
 } from 'typeorm';
 import Message from './Message';
 
@@ -13,6 +14,9 @@ export default class MessageImage {
 
   @Column()
   imageLocation?: string;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => Message, (message) => message.images)
   message?: Message;

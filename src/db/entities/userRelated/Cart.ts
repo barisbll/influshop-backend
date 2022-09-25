@@ -18,6 +18,7 @@ export default class Cart {
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart, {
     nullable: true,
+    onDelete: 'CASCADE',
     })
   cartItems?: CartItem[];
 }
