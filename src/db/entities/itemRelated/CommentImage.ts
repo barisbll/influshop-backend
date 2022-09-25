@@ -1,6 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
 import Comment from './Comment';
-import User from '../userRelated/User';
 
 @Entity('comment_image')
 export default class CommentImage {
@@ -10,9 +9,9 @@ export default class CommentImage {
   @Column()
   imageLocation?: string;
 
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   @ManyToOne(() => Comment, (comment) => comment.commentImages)
   comment?: Comment;
-
-  @ManyToOne(() => User, (user) => user.commentImages)
-  user?: User;
 }

@@ -6,6 +6,7 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Length } from 'class-validator';
 import User from '../userRelated/User';
@@ -39,24 +40,32 @@ export default class Comment {
   @UpdateDateColumn()
   updatedAt?: Date;
 
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   @OneToMany(() => CommentLike, (commentLike) => commentLike.comment, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   commentLikes?: CommentLike[];
 
   @OneToMany(() => CommentImage, (commentImage) => commentImage.comment, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   commentImages?: CommentImage[];
 
   @OneToMany(() => CommentReport, (commentReport) => commentReport.comment, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   commentReports?: CommentReport[];
 
   @ManyToOne(() => User, (user) => user.comments)
   user?: User;
 
-  @ManyToOne(() => Item, (item) => item.comments)
+  @ManyToOne(() => Item, (item) => item.comments, {
+    onDelete: 'CASCADE',
+    })
   item?: Item;
 }
