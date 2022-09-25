@@ -73,25 +73,32 @@ export default class Item {
     (historicalRecord) => historicalRecord.item,
     {
       nullable: true,
+      onDelete: 'NO ACTION',
     },
   )
   historicalRecords?: HistoricalRecord[];
 
-  @OneToMany(() => ItemImage, (itemImage) => itemImage.item)
+  @OneToMany(() => ItemImage, (itemImage) => itemImage.item, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   images?: ItemImage[];
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.item, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   cartItems?: CartItem[];
 
   @OneToMany(() => ItemStar, (itemStar) => itemStar.item, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   itemStars?: ItemStar[];
 
   @OneToMany(() => Comment, (comment) => comment.item, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   comments?: Comment[];
 

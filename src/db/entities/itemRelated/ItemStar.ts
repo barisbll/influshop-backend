@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
 import User from '../userRelated/User';
 import Item from './Item';
 
@@ -14,6 +14,9 @@ export default class ItemStar {
     enum: Stars,
   })
   stars?: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => User, (user) => user.itemStars)
   user?: User;
