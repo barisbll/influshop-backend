@@ -6,6 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import Influencer from './Influencer';
@@ -40,6 +41,9 @@ export default class InfluencerReport {
 
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => Influencer, (influencer) => influencer.selfReports)
   reportedInfluencer?: Influencer;
