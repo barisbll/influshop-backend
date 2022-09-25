@@ -6,6 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import Comment from './Comment';
@@ -39,6 +40,9 @@ export default class CommentReport {
 
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => User, (user) => user.commentReports)
   reporterUser?: User;
