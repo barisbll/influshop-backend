@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 
 import Influencer from '../influencerRelated/Influencer';
@@ -39,14 +38,11 @@ export default class HistoricalRecord {
   updatedAt?: Date;
 
   @ManyToOne(() => Influencer, (influencer) => influencer.historicalRecords)
-  @JoinColumn({ name: 'influencer_id' })
   influencer?: Influencer;
 
   @ManyToOne(() => Item, (item) => item.historicalRecords)
-  @JoinColumn({ name: 'item_id' })
   item?: Item;
 
   @ManyToOne(() => User, (user) => user.historicalRecords)
-  @JoinColumn({ name: 'user_id' })
   user?: User;
 }
