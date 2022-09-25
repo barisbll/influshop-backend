@@ -7,6 +7,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import MessageHistory from './MessageHistory';
@@ -32,7 +33,7 @@ export default class Message {
   isEdited?: boolean;
 
   @Column()
-  isDeleted?: boolean;
+  isVisible?: boolean;
 
   @Column({
     nullable: true,
@@ -48,8 +49,12 @@ export default class Message {
   @UpdateDateColumn()
   updatedAt?: Date;
 
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   @OneToMany(() => MessageImage, (messageImage) => messageImage.message, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   images?: MessageImage[];
 

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
 import User from './User';
 
 @Entity('credit_card')
@@ -20,6 +20,9 @@ export default class CreditCard {
 
   @Column()
   cvv?: string;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => User, (user) => user.creditCards)
   user?: User;
