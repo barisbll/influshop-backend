@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
   ManyToMany,
   JoinTable,
 } from 'typeorm';
@@ -40,7 +39,6 @@ export default class Category {
   updatedAt?: Date;
 
   @ManyToOne(() => Influencer, (influencer) => influencer.categories)
-  @JoinColumn({ name: 'influencer_id' })
   influencer?: Influencer;
 
   @ManyToMany(() => Item, (item) => item.categories, {
