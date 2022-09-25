@@ -47,7 +47,7 @@ export default class Category {
     nullable: true,
   })
   @JoinTable({
-    name: 'item_category',
+    name: 'category_item',
     joinColumn: {
         name: 'category_id',
         referencedColumnName: 'id',

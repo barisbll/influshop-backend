@@ -36,7 +36,7 @@ export default class HistoricalRecord {
   purchaseDate?: Date;
 
   @UpdateDateColumn()
-  updated_at?: Date;
+  updatedAt?: Date;
 
   @ManyToOne(() => Influencer, (influencer) => influencer.historicalRecords)
   @JoinColumn({ name: 'influencer_id' })

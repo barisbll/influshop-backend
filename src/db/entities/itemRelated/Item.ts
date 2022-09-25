@@ -14,8 +14,11 @@ import { Stars } from '../../../config/types';
 import Influencer from '../influencerRelated/Influencer';
 import Category from '../influencerRelated/Category';
 import HistoricalRecord from '../general/HistoricalRecord';
-import Cart from '../userRelated/Cart';
 import Favorite from '../userRelated/Favorite';
+import ItemImage from './ItemImage';
+import CartItem from '../userRelated/CartItem';
+import ItemStar from './ItemStar';
+import Comment from './Comment';
 
 @Entity('item')
 export default class Item {
@@ -68,18 +71,40 @@ export default class Item {
   @OneToMany(
     () => HistoricalRecord,
     (historicalRecord) => historicalRecord.item,
+    {
+      nullable: true,
+    },
   )
   historicalRecords?: HistoricalRecord[];
+
+  @OneToMany(() => ItemImage, (itemImage) => itemImage.item)
+  images?: ItemImage[];
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.item, {
+    nullable: true,
+  })
+  cartItems?: CartItem[];
+
+  @OneToMany(() => ItemStar, (itemStar) => itemStar.item, {
+    nullable: true,
+  })
+  itemStars?: ItemStar[];
+
+  @OneToMany(() => Comment, (comment) => comment.item, {
+    nullable: true,
+  })
+  comments?: Comment[];
 
   @ManyToOne(() => Influencer, (influencer) => influencer.items)
   influencer?: Influencer;
 
-  @ManyToMany(() => Category, (category) => category.items)
+  @ManyToMany(() => Category, (category) => category.items, {
+    nullable: true,
+  })
   categories?: Category[];
 
-  @ManyToMany(() => Cart, (cart) => cart.items)
-  carts?: Cart[];
-
-  @ManyToMany(() => Favorite, (favorite) => favorite.items)
+  @ManyToMany(() => Favorite, (favorite) => favorite.items, {
+    nullable: true,
+  })
   favorites?: Favorite[];
 }

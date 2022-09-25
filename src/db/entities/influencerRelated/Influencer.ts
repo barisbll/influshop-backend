@@ -6,6 +6,9 @@ import Person from '../baseEntities/Person';
 import InfluencerReport from './InfluencerReport';
 import UserReport from '../userRelated/UserReport';
 import HistoricalRecord from '../general/HistoricalRecord';
+import ItemReport from '../itemRelated/ItemReport';
+import InfluencerAddress from './InfluencerAddress';
+import MessageHistory from '../messageRelated/MessageHistory';
 
 @Entity('influencer')
 export default class Influencer extends Person {
@@ -41,24 +44,55 @@ export default class Influencer extends Person {
   @OneToMany(
     () => InfluencerReport,
     (influencerReport) => influencerReport.reportedInfluencer,
+    {
+      nullable: true,
+    },
   )
   selfReports?: InfluencerReport[];
 
   @OneToMany(
     () => InfluencerReport,
     (influencerReport) => influencerReport.reporterInfluencer,
+    {
+      nullable: true,
+    },
   )
   influencerReports?: InfluencerReport[];
 
-  @OneToMany(
-    () => UserReport,
-    (userReport) => userReport.reporterInfluencer,
-  )
+  @OneToMany(() => UserReport, (userReport) => userReport.reporterInfluencer, {
+    nullable: true,
+  })
   userReports?: UserReport[];
+
+  @OneToMany(() => ItemReport, (itemReport) => itemReport.reporterInfluencer, {
+    nullable: true,
+  })
+  itemReports?: ItemReport[];
 
   @OneToMany(
     () => HistoricalRecord,
     (historicalRecord) => historicalRecord.influencer,
+    {
+      nullable: true,
+    },
   )
   historicalRecords?: HistoricalRecord[];
+
+  @OneToMany(
+    () => InfluencerAddress,
+    (influencerAddress) => influencerAddress.influencer,
+    {
+      nullable: true,
+    },
+  )
+  addresses?: InfluencerAddress[];
+
+  @OneToMany(
+    () => MessageHistory,
+    (messageHistory) => messageHistory.influencer,
+    {
+      nullable: true,
+    },
+  )
+  messageHistories?: MessageHistory[];
 }
