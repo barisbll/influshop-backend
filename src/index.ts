@@ -1,21 +1,13 @@
 import compression from 'compression';
-import express from 'express';
 import cors from 'cors';
-import logger from './config/logger';
-import morganMiddleware from './config/morgan';
+import express, { NextFunction, Request, Response } from 'express';
 import config from './config/config';
 import AppDataSource from './config/data-source';
+import logger from './config/logger';
+import morganMiddleware from './config/morgan';
+import CustomError from './util/customError';
 
 const app = express();
-
-app.get('/logger', (_, res) => {
-  logger.error('This is an error log');
-  logger.warn('This is a warn log');
-  logger.info('This is a info log');
-  logger.debug('This is a debug log');
-
-  res.send('Hello world');
-});
 
 const main = () => {
   try {
@@ -35,4 +27,23 @@ const main = () => {
   }
 };
 
+// express.js error handling middleware
+const errorHandler = (
+  err: TypeError | CustomError,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line
+  next: NextFunction
+) => {
+  let customError = err;
+
+  if (!(err instanceof CustomError)) {
+    customError = new CustomError(err.message);
+  }
+
+  res.status((customError as CustomError).status).send(customError);
+};
+
 main();
+
+app.use(errorHandler);
