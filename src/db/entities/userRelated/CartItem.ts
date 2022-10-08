@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
-import Cart from './Cart';
+import { Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import Item from '../itemRelated/Item';
+import Cart from './Cart';
 
 @Entity('cart_item')
 export default class CartItem {
@@ -13,13 +13,9 @@ export default class CartItem {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  @ManyToOne(() => Cart, (cart) => cart.cartItems, {
-    onDelete: 'CASCADE',
-    })
+  @ManyToOne(() => Cart, (cart) => cart.cartItems)
   cart?: Cart;
 
-  @ManyToOne(() => Item, (item) => item.cartItems, {
-    onDelete: 'CASCADE',
-    })
+  @ManyToOne(() => Item, (item) => item.cartItems)
   item?: Item;
 }

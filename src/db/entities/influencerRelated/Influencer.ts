@@ -1,14 +1,15 @@
-import { Entity, Column, OneToOne, OneToMany, JoinColumn } from 'typeorm';
 import { IsHexColor, Length } from 'class-validator';
-import Category from './Category';
-import Item from '../itemRelated/Item';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import Person from '../baseEntities/Person';
-import InfluencerReport from './InfluencerReport';
-import UserReport from '../userRelated/UserReport';
 import HistoricalRecord from '../general/HistoricalRecord';
+import Item from '../itemRelated/Item';
+import ItemGroup from '../itemRelated/ItemGroup';
 import ItemReport from '../itemRelated/ItemReport';
-import InfluencerAddress from './InfluencerAddress';
 import MessageHistory from '../messageRelated/MessageHistory';
+import UserReport from '../userRelated/UserReport';
+import Category from './Category';
+import InfluencerAddress from './InfluencerAddress';
+import InfluencerReport from './InfluencerReport';
 
 @Entity('influencer')
 export default class Influencer extends Person {
@@ -104,4 +105,10 @@ export default class Influencer extends Person {
     },
   )
   messageHistories?: MessageHistory[];
+
+  @OneToMany(() => ItemGroup, (itemGroup) => itemGroup.influencer, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  itemGroups?: ItemGroup[];
 }
