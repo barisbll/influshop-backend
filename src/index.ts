@@ -1,23 +1,17 @@
-import compression from 'compression';
-import cors from 'cors';
-import express, { NextFunction, Request, Response } from 'express';
+import { Express } from 'express';
 import config from './config/config';
 import AppDataSource from './config/data-source';
 import logger from './config/logger';
-import morganMiddleware from './config/morgan';
-import CustomError from './util/customError';
+import { errorHandler } from './util/customError';
+import { Server } from './util/Server';
 
-const app = express();
+const app = Server.getServer();
 
-const main = () => {
+// eslint-disable-next-line no-shadow
+const initializeDB = async (app: Express) => {
   try {
-    app.use(express.json());
-    app.use(cors());
-    app.use(compression());
-    app.use(morganMiddleware);
-
     AppDataSource.initialize().then(() => {
-      app.listen(config.port, () => {
+      app.listen(config.port || 8080, () => {
         logger.info(`Server started at http://localhost:${config.port}`);
       });
     });
@@ -27,23 +21,5 @@ const main = () => {
   }
 };
 
-// express.js error handling middleware
-const errorHandler = (
-  err: TypeError | CustomError,
-  req: Request,
-  res: Response,
-  // eslint-disable-next-line
-  next: NextFunction
-) => {
-  let customError = err;
-
-  if (!(err instanceof CustomError)) {
-    customError = new CustomError(err.message);
-  }
-
-  res.status((customError as CustomError).status).send(customError);
-};
-
-main();
-
+initializeDB(app);
 app.use(errorHandler);
