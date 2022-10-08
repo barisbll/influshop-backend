@@ -1,24 +1,25 @@
+import { Length, Min } from 'class-validator';
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToMany,
-  OneToMany,
   DeleteDateColumn,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { Min, Length } from 'class-validator';
 import { Stars } from '../../../config/types';
-import Influencer from '../influencerRelated/Influencer';
-import Category from '../influencerRelated/Category';
 import HistoricalRecord from '../general/HistoricalRecord';
-import Favorite from '../userRelated/Favorite';
-import ItemImage from './ItemImage';
+import Category from '../influencerRelated/Category';
+import Influencer from '../influencerRelated/Influencer';
 import CartItem from '../userRelated/CartItem';
-import ItemStar from './ItemStar';
+import Favorite from '../userRelated/Favorite';
 import Comment from './Comment';
+import ItemGroup from './ItemGroup';
+import ItemImage from './ItemImage';
+import ItemStar from './ItemStar';
 
 @Entity('item')
 export default class Item {
@@ -58,6 +59,13 @@ export default class Item {
     default: true,
   })
   isVisible?: boolean;
+
+  // featureName: value
+  @Column({
+    type: 'simple-json',
+    nullable: true,
+  })
+  extraFeatures?: any;
 
   @CreateDateColumn()
   created_at?: Date;
@@ -104,6 +112,11 @@ export default class Item {
 
   @ManyToOne(() => Influencer, (influencer) => influencer.items)
   influencer?: Influencer;
+
+  @ManyToOne(() => ItemGroup, (itemGroup) => itemGroup.items, {
+    nullable: true,
+  })
+  itemGroup?: ItemGroup;
 
   @ManyToMany(() => Category, (category) => category.items, {
     nullable: true,

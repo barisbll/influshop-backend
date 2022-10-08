@@ -1,19 +1,13 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-} from 'typeorm';
 import { Length } from 'class-validator';
+import {
+  Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne,
+  OneToMany, PrimaryGeneratedColumn, UpdateDateColumn,
+} from 'typeorm';
 import User from '../userRelated/User';
-import Item from './Item';
-import CommentLike from './CommentLike';
 import CommentImage from './CommentImage';
+import CommentLike from './CommentLike';
 import CommentReport from './CommentReport';
+import Item from './Item';
 
 @Entity('comment')
 export default class Comment {
@@ -64,8 +58,6 @@ export default class Comment {
   @ManyToOne(() => User, (user) => user.comments)
   user?: User;
 
-  @ManyToOne(() => Item, (item) => item.comments, {
-    onDelete: 'CASCADE',
-    })
+  @ManyToOne(() => Item, (item) => item.comments)
   item?: Item;
 }

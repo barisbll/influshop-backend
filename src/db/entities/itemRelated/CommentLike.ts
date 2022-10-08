@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
-import Comment from './Comment';
+import { Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import User from '../userRelated/User';
+import Comment from './Comment';
 
 @Entity('comment_like')
 export default class CommentLike {
@@ -16,8 +16,6 @@ export default class CommentLike {
   @ManyToOne(() => Comment, (comment) => comment.commentLikes)
   comment?: Comment;
 
-  @ManyToOne(() => User, (user) => user.commentLikes, {
-    onDelete: 'CASCADE',
-    })
+  @ManyToOne(() => User, (user) => user.commentLikes)
   user?: User;
 }
