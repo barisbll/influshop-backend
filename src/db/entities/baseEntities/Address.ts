@@ -1,10 +1,7 @@
+import { Length } from 'class-validator';
 import {
-  Entity,
   BaseEntity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
+  Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('address')
@@ -32,9 +29,16 @@ export default class Address extends BaseEntity {
   @Column()
   zip?: string;
 
+  @Column()
+  @Length(1, 32)
+  addressName?: string;
+
   @CreateDateColumn()
   createdAt?: Date;
 
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

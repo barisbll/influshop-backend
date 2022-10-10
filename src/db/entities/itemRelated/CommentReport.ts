@@ -1,16 +1,17 @@
 /* eslint-disable no-unused-vars */
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
-import Comment from './Comment';
+import Influencer from '../influencerRelated/Influencer';
 import User from '../userRelated/User';
+import Comment from './Comment';
 
 // eslint-disable-next-line no-shadow
 export enum CommentReportEnum {
@@ -31,7 +32,8 @@ export default class CommentReport {
   report?: string;
 
   @Column({
-    default: false,
+    default: null,
+    nullable: true,
   })
   isReportControlled?: boolean;
 
@@ -44,9 +46,16 @@ export default class CommentReport {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  @ManyToOne(() => User, (user) => user.commentReports)
+  @ManyToOne(() => User, (user) => user.commentReports, {
+    nullable: true,
+    })
   reporterUser?: User;
 
+  @ManyToOne(() => Influencer, (influencer) => influencer.commentReports, {
+    nullable: true,
+    })
+  reporterInfluencer?: Influencer;
+
   @ManyToOne(() => Comment, (comment) => comment.commentReports)
-  comment?: Comment;
+  reportedComment?: Comment;
 }

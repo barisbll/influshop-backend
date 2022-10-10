@@ -1,13 +1,13 @@
 /* eslint-disable no-unused-vars */
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  OneToMany,
-  ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import MessageHistory from './MessageHistory';
@@ -42,6 +42,12 @@ export default class Message {
     enum: MessageReport,
   })
   report?: string;
+
+  @Column({
+    default: null,
+    nullable: true,
+  })
+  isReportControlled?: boolean;
 
   @CreateDateColumn()
   createdAt?: Date;

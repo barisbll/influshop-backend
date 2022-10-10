@@ -1,16 +1,16 @@
 /* eslint-disable no-unused-vars */
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
-import Influencer from './Influencer';
 import User from '../userRelated/User';
+import Influencer from './Influencer';
 
 // eslint-disable-next-line no-shadow
 export enum InfluencerReportEnum {
@@ -32,7 +32,8 @@ export default class InfluencerReport {
   report?: string;
 
   @Column({
-    default: false,
+    default: null,
+    nullable: true,
   })
   isReportControlled?: boolean;
 

@@ -2,6 +2,7 @@ import { IsHexColor, Length } from 'class-validator';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import Person from '../baseEntities/Person';
 import HistoricalRecord from '../general/HistoricalRecord';
+import CommentReport from '../itemRelated/CommentReport';
 import Item from '../itemRelated/Item';
 import ItemGroup from '../itemRelated/ItemGroup';
 import ItemReport from '../itemRelated/ItemReport';
@@ -75,6 +76,16 @@ export default class Influencer extends Person {
     onDelete: 'NO ACTION',
   })
   itemReports?: ItemReport[];
+
+  @OneToMany(
+    () => CommentReport,
+    (commentReport) => commentReport.reporterInfluencer,
+    {
+      nullable: true,
+      onDelete: 'NO ACTION',
+    },
+  )
+  commentReports?: CommentReport[];
 
   @OneToMany(
     () => HistoricalRecord,

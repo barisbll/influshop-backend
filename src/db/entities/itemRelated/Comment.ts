@@ -49,7 +49,7 @@ export default class Comment {
   })
   commentImages?: CommentImage[];
 
-  @OneToMany(() => CommentReport, (commentReport) => commentReport.comment, {
+  @OneToMany(() => CommentReport, (commentReport) => commentReport.reportedComment, {
     nullable: true,
     onDelete: 'CASCADE',
   })

@@ -1,14 +1,13 @@
 /* eslint-disable no-unused-vars */
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-
 import Influencer from '../influencerRelated/Influencer';
 import User from './User';
 
@@ -31,7 +30,8 @@ export default class UserReport {
   report?: string;
 
   @Column({
-    default: false,
+    default: null,
+    nullable: true,
   })
   isReportControlled?: boolean;
 

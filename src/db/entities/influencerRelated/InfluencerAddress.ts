@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
-import { Length } from 'class-validator';
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import Address from '../baseEntities/Address';
 import Influencer from './Influencer';
 
@@ -7,13 +6,6 @@ import Influencer from './Influencer';
 export default class InfluencerAddress extends Address {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
-
-  @Column()
-  @Length(1, 32)
-  addressName?: string;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @ManyToOne(() => Influencer, (influencer) => influencer.addresses)
   influencer?: Influencer;
