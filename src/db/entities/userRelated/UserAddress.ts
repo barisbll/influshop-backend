@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
-import { Length } from 'class-validator';
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import Address from '../baseEntities/Address';
 import User from './User';
 
@@ -7,13 +6,6 @@ import User from './User';
 export default class UserAddress extends Address {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
-
-  @Column()
-  @Length(1, 32)
-  addressName?: string;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @ManyToOne(() => User, (user) => user.addresses)
   user?: User;

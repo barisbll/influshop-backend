@@ -23,6 +23,7 @@ export default class ItemGroup {
 
   @Column({
     nullable: true,
+    default: null,
   })
   imageLocation?: string;
 

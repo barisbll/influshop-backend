@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import 'reflect-metadata';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import request from 'supertest';
 import { Server } from '../../../../../../util/Server';
