@@ -1,13 +1,9 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  OneToOne,
-  ManyToMany,
-  JoinTable,
+  Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import User from './User';
 import Item from '../itemRelated/Item';
+import User from './User';
 
 @Entity('favorite')
 export default class Favorite {
@@ -15,6 +11,7 @@ export default class Favorite {
   id?: string;
 
   @OneToOne(() => User)
+  @JoinColumn()
   user?: User;
 
   @ManyToMany(() => Item)

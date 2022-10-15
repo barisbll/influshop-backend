@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
+import { Service } from 'typedi';
 
-export default class CustomError {
+@Service()
+export class CustomError {
     message!: string;
 
     status!: number;
