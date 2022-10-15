@@ -1,13 +1,13 @@
+import { IsEmail, IsFQDN, Length, MaxDate, MinDate } from 'class-validator';
 import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
   BaseEntity,
+  Column,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { Length, IsEmail, MinDate, MaxDate, IsFQDN } from 'class-validator';
 
 @Entity()
 export default class Person extends BaseEntity {
@@ -34,6 +34,7 @@ export default class Person extends BaseEntity {
   email?: string;
 
   @Column()
+  @Length(6, 20)
   password?: string;
 
   @Column({
