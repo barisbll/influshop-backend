@@ -27,6 +27,10 @@ module.exports = {
     'operator-linebreak': 'off',
     'import/prefer-default-export': 'off',
     'class-methods-use-this': 'off',
+    'no-useless-constructor': 'off',
+    '@typescript-eslint/no-useless-constructor': 'warn',
+    'no-empty-function': 'off',
+    '@typescript-eslint/no-empty-function': 'error',
     indent: 'off',
   },
   settings: {
