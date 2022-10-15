@@ -1,8 +1,9 @@
 import 'reflect-metadata';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { Container } from 'typedi';
 import { DataSource, Logger } from 'typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { config } from './config';
 import logger from './logger';
-import config from './config';
 
 const dbLogger: Logger = {
   logQuery(query, parameters) {
@@ -37,7 +38,7 @@ const dbLogger: Logger = {
   },
 };
 
-const AppDataSource = new DataSource({
+export const AppDataSource = new DataSource({
   type: 'postgres',
   host: config.db.host,
   port: config.db.port,
@@ -53,4 +54,4 @@ const AppDataSource = new DataSource({
   logger: dbLogger,
 });
 
-export default AppDataSource;
+Container.set('dataSource', AppDataSource);

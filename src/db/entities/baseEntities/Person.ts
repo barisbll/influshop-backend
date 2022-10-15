@@ -34,7 +34,7 @@ export default class Person extends BaseEntity {
   email?: string;
 
   @Column()
-  @Length(6, 20)
+  @Length(8, 20)
   password?: string;
 
   @Column({

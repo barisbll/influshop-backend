@@ -9,9 +9,6 @@ import morganMiddleware from '../config/morgan';
 export class Server {
   private static app: Express;
 
-  // eslint-disable-next-line no-useless-constructor, no-empty-function
-  private constructor() {}
-
   public static getServer(): Express {
     if (!Server.app) {
       const app = express();

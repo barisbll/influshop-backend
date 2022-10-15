@@ -27,6 +27,12 @@ const tempConfig = convict({
     env: 'PORT',
     arg: 'port',
   },
+  encryptionKey: {
+    doc: 'The encryption key',
+    format: nonEmptyString('ENCRYPTION_KEY'),
+    default: 'somekey',
+    env: 'ENCRYPTION_KEY',
+  },
   db: {
     host: {
       format: nonEmptyString('DATABASE_HOST'),
@@ -64,6 +70,4 @@ const tempConfig = convict({
 // Perform validation
 tempConfig.validate({ allowed: 'strict' });
 
-const config = tempConfig.getProperties();
-
-export default config;
+export const config = tempConfig.getProperties();

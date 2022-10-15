@@ -1,8 +1,8 @@
 import { Express } from 'express';
-import config from './config/config';
-import AppDataSource from './config/data-source';
+import { config } from './config/config';
+import { AppDataSource } from './config/data-source';
 import logger from './config/logger';
-import { errorHandler } from './util/customError';
+import { errorHandler } from './util/CustomError';
 import { Server } from './util/Server';
 
 const app = Server.getServer();
