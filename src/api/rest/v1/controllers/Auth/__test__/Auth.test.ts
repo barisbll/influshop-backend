@@ -29,3 +29,9 @@
 //         });
 //     });
 // });
+
+describe('AuthController', () => {
+    it('expects true', () => {
+        expect(true).toBe(true);
+    });
+});
