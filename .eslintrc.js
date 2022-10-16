@@ -10,6 +10,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
   },
+  allowNamedFunctions: true,
   plugins: ['@typescript-eslint', 'jest'],
   rules: {
     'import/extensions': [
@@ -31,6 +32,7 @@ module.exports = {
     '@typescript-eslint/no-useless-constructor': 'warn',
     'no-empty-function': 'off',
     '@typescript-eslint/no-empty-function': 'error',
+    'lines-between-class-members': 'off',
     indent: 'off',
   },
   settings: {

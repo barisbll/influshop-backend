@@ -1,3 +1,4 @@
+import { hash } from 'bcryptjs';
 import { Container, Inject, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import { UserSignupRequest } from '../../api/rest/v1/controllers/Auth/Auth.types';
@@ -14,12 +15,11 @@ export class UserService {
     this.dataSource = Container.get('dataSource');
   }
 
-  // TODO: bcrypt password
   createUser = async (req: UserSignupRequest) => {
     const user = new User();
+    user.password = await hash(req.password, 12);
     user.username = req.username;
     user.email = req.email;
-    user.password = req.password;
 
     const cart = new Cart();
     await this.dataSource.manager.save(cart);

@@ -1,38 +1,63 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
 import { Service } from 'typedi';
+import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { AuthService } from '../../../../../service/Auth/Auth.service';
-import { UserSignupRequest } from './Auth.types';
+import { RefreshTokenRequest, UserLoginRequest, UserSignupRequest } from './Auth.types';
+import { userLoginValidator } from './validators/UserLogin.validator';
+import { refreshTokenValidator } from './validators/UserRefreshToken.validator';
 import { userSignupValidator } from './validators/UserSignup.validator';
 
 @Service()
 export class AuthController {
-    // eslint-disable-next-line no-unused-vars
-    constructor(private readonly authService: AuthService) {}
+  // eslint-disable-next-line no-unused-vars
+  constructor(private readonly authService: AuthService) {}
 
-    signupUser = async (req: Request, res: Response, next:NextFunction) => {
-        req.body as UserSignupRequest;
-        try {
-            const validatedBody = await userSignupValidator(req.body);
-            await this.authService.signupUser(validatedBody);
-            res.json({ message: 'User Successfully Created' }).status(HttpStatus.OK);
-        } catch (err) {
-            next(err);
-        }
-    };
+  userSignup = async (req: Request, res: Response, next: NextFunction) => {
+    req.body as UserSignupRequest;
+    try {
+      const validatedBody = await userSignupValidator(req.body);
+      await this.authService.userSignup(validatedBody);
+      res.json({ message: 'User Successfully Created' }).status(HttpStatus.CREATED);
+    } catch (err) {
+      next(err);
+    }
+  };
 
-    // loginUser = async (req: Request, res: Response, next:NextFunction) => {
-    // };
+  userLogin = async (req: Request, res: Response, next: NextFunction) => {
+    req.body as UserLoginRequest;
+    try {
+      const validateBody = await userLoginValidator(req.body);
+      const { token, email } = await this.authService.userLogin(validateBody);
+      res.json({ message: 'User Successfully Logged In', token, email }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
 
-    // logoutUser = async (req: Request, res: Response, next:NextFunction) => {
-    // };
+  userRefreshToken = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const { decodedToken } = req;
 
-    // signupInfluencer = async (req: Request, res: Response, next:NextFunction) => {
-    // };
+    try {
+      const validateBody = await refreshTokenValidator(
+        decodedToken as unknown as RefreshTokenRequest
+      );
+      const { token, email } = await this.authService.userRefreshToken(validateBody);
+      res.json({ message: 'Token Successfully Refreshed', token, email }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
 
-    // loginInfluencer = async (req: Request, res: Response, next:NextFunction) => {
-    // };
+  // logoutUser = async (req: Request, res: Response, next:NextFunction) => {
+  // };
 
-    // logoutInfluencer = async (req: Request, res: Response, next:NextFunction) => {
-    // };
+  // signupInfluencer = async (req: Request, res: Response, next:NextFunction) => {
+  // };
+
+  // loginInfluencer = async (req: Request, res: Response, next:NextFunction) => {
+  // };
+
+  // logoutInfluencer = async (req: Request, res: Response, next:NextFunction) => {
+  // };
 }
