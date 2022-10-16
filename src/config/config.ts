@@ -27,11 +27,11 @@ const tempConfig = convict({
     env: 'PORT',
     arg: 'port',
   },
-  encryptionKey: {
-    doc: 'The encryption key',
+  jwtKey: {
+    doc: 'The encryption key for JWT',
     format: nonEmptyString('ENCRYPTION_KEY'),
     default: 'somekey',
-    env: 'ENCRYPTION_KEY',
+    env: 'JWT_KEY',
   },
   db: {
     host: {

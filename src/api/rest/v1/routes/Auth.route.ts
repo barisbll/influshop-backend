@@ -1,5 +1,6 @@
 import express from 'express';
 import Container from 'typedi';
+import { isAuth } from '../../../../middleware/is-auth';
 import { AuthController } from '../controllers/Auth/Auth.controller';
 
 export const createRouter = () => {
@@ -7,7 +8,11 @@ export const createRouter = () => {
 
     const router = express.Router();
 
-    router.post('/signup-user', authController.signupUser);
+    router.post('/user/signup', authController.userSignup);
+
+    router.post('/user/login', authController.userLogin);
+
+    router.post('/user/refresh-token', isAuth,  authController.userRefreshToken);
 
     return router;
 };

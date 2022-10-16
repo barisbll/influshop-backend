@@ -9,6 +9,11 @@ export type UserLoginRequest = {
     password: string;
 };
 
+export type RefreshTokenRequest = {
+    id: string;
+    email: string;
+};
+
 export type InfluencerSignupRequest = {
     username: string;
     email: string;
@@ -18,4 +23,8 @@ export type InfluencerSignupRequest = {
 export type InfluencerLoginRequest = {
     email: string;
     password: string;
+};
+
+export type InfluencerRefreshTokenRequest = {
+    influencerId: string;
 };
