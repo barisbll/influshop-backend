@@ -6,7 +6,7 @@ import { DataSource } from 'typeorm';
 import {
     RefreshTokenRequest,
     UserLoginRequest,
-    UserSignupRequest
+    UserSignupRequest,
 } from '../../api/rest/v1/controllers/Auth/Auth.types';
 import { config } from '../../config/config';
 import Influencer from '../../db/entities/influencerRelated/Influencer';
@@ -105,7 +105,7 @@ export class AuthService {
   };
 
   userRefreshToken = async (
-    body: RefreshTokenRequest
+    body: RefreshTokenRequest,
   ): Promise<{ token: string; email: string }> => {
     const user = await this.dataSource
       .getRepository(User)
@@ -114,7 +114,7 @@ export class AuthService {
     if (!user) {
       throw new CustomError(
         'A user with that id and email does not exist',
-        HttpStatus.UNAUTHORIZED
+        HttpStatus.UNAUTHORIZED,
       );
     }
 
@@ -125,10 +125,10 @@ export class AuthService {
   };
 
   influencerSignup = async () => {
-    console.log('Signup influencer');
+    // console.log('Signup influencer');
   };
 
   influencerLogin = async () => {
-    console.log('Login influencer');
+    // console.log('Login influencer');
   };
 }

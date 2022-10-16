@@ -40,7 +40,7 @@ export class AuthController {
 
     try {
       const validateBody = await refreshTokenValidator(
-        decodedToken as unknown as RefreshTokenRequest
+        decodedToken as unknown as RefreshTokenRequest,
       );
       const { token, email } = await this.authService.userRefreshToken(validateBody);
       res.json({ message: 'Token Successfully Refreshed', token, email }).status(HttpStatus.OK);

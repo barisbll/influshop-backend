@@ -10,7 +10,6 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
   },
-  allowNamedFunctions: true,
   plugins: ['@typescript-eslint', 'jest'],
   rules: {
     'import/extensions': [
