@@ -1,10 +1,10 @@
-export type UserSignupRequest = {
+export type SignupRequest = {
     username: string;
     email: string;
     password: string;
 };
 
-export type UserLoginRequest = {
+export type LoginRequest = {
     email: string;
     password: string;
 };
@@ -12,19 +12,4 @@ export type UserLoginRequest = {
 export type RefreshTokenRequest = {
     id: string;
     email: string;
-};
-
-export type InfluencerSignupRequest = {
-    username: string;
-    email: string;
-    password: string;
-};
-
-export type InfluencerLoginRequest = {
-    email: string;
-    password: string;
-};
-
-export type InfluencerRefreshTokenRequest = {
-    influencerId: string;
 };

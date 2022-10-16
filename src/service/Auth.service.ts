@@ -4,14 +4,13 @@ import jwt from 'jsonwebtoken';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import {
-    RefreshTokenRequest,
-    UserLoginRequest,
-    UserSignupRequest,
-} from '../../api/rest/v1/controllers/Auth/Auth.types';
-import { config } from '../../config/config';
-import Influencer from '../../db/entities/influencerRelated/Influencer';
-import User from '../../db/entities/userRelated/User';
-import { CustomError } from '../../util/CustomError';
+  LoginRequest, RefreshTokenRequest, SignupRequest,
+} from '../api/rest/v1/controllers/Auth/Auth.types';
+import { config } from '../config/config';
+import Influencer from '../db/entities/influencerRelated/Influencer';
+import User from '../db/entities/userRelated/User';
+import { CustomError } from '../util/CustomError';
+import { InfluencerService } from './Influencer.service';
 import { UserService } from './User.service';
 
 @Service()
@@ -19,10 +18,12 @@ export class AuthService {
   private dataSource: DataSource;
 
   private userService: UserService;
+  private influencerService: InfluencerService;
 
   constructor() {
     this.dataSource = Container.get('dataSource');
     this.userService = Container.get(UserService);
+    this.influencerService = Container.get(InfluencerService);
   }
 
   isEmailUnique = async (email: string): Promise<boolean> => {
@@ -51,7 +52,7 @@ export class AuthService {
     return true;
   };
 
-  userSignup = async (body: UserSignupRequest): Promise<void> => {
+  userSignup = async (body: SignupRequest): Promise<void> => {
     const isEmailUnique = await this.isEmailUnique(body.email);
     if (!isEmailUnique) {
       throw new CustomError('Email already exists', HttpStatus.CONFLICT, {
@@ -82,7 +83,7 @@ export class AuthService {
     return token;
   };
 
-  userLogin = async (body: UserLoginRequest): Promise<{ token: string; email: string }> => {
+  userLogin = async (body: LoginRequest): Promise<{ token: string; email: string }> => {
     const user = await this.dataSource
       .getRepository(User)
       .findOne({ where: { email: body.email } });
@@ -124,11 +125,68 @@ export class AuthService {
     };
   };
 
-  influencerSignup = async () => {
-    // console.log('Signup influencer');
+  influencerSignup = async (body: SignupRequest): Promise<void> => {
+    const isEmailUnique = await this.isEmailUnique(body.email);
+    if (!isEmailUnique) {
+      throw new CustomError('Email already exists', HttpStatus.CONFLICT, {
+        email: body.email,
+      });
+    }
+
+    const isUsernameUnique = await this.isUsernameUnique(body.username);
+    if (!isUsernameUnique) {
+      throw new CustomError('Username already exists', HttpStatus.CONFLICT, {
+        username: body.username,
+      });
+    }
+    try {
+      await this.influencerService.createInfluencer(body);
+    } catch (err) {
+      throw new CustomError('Error creating influencer', HttpStatus.INTERNAL_SERVER_ERROR, {
+        err,
+      });
+    }
   };
 
-  influencerLogin = async () => {
-    // console.log('Login influencer');
+  influencerLogin = async (body: LoginRequest): Promise<{ token: string; email: string }> => {
+    const influencer = await this.dataSource
+      .getRepository(Influencer)
+      .findOne({ where: { email: body.email } });
+
+    if (!influencer) {
+      throw new CustomError('An influencer with that email does not exist', HttpStatus.UNAUTHORIZED, {
+        email: body.email,
+      });
+    }
+    const isPasswordValid = await compare(body.password, influencer.password as string);
+
+    if (!isPasswordValid) {
+      throw new CustomError('Invalid email or password', HttpStatus.UNAUTHORIZED);
+    }
+
+    return {
+      token: this.createToken(influencer.id as string, influencer.email as string),
+      email: influencer.email as string,
+    };
+  };
+
+  influencerRefreshToken = async (
+    body: RefreshTokenRequest,
+  ): Promise<{ token: string; email: string }> => {
+    const influencer = await this.dataSource
+      .getRepository(Influencer)
+      .findOne({ where: { id: body.id, email: body.email } });
+
+    if (!influencer) {
+      throw new CustomError(
+        'An influencer with that id and email does not exist',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return {
+      token: this.createToken(influencer.id as string, influencer.email as string),
+      email: influencer.email as string,
+    };
   };
 }

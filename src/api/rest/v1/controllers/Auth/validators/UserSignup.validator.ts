@@ -2,9 +2,9 @@ import HttpStatus from 'http-status-codes';
 import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
-import { UserSignupRequest } from '../Auth.types';
+import { SignupRequest } from '../Auth.types';
 
-export const userSignupValidator = async (userSignupRequest: UserSignupRequest) => {
+export const signupValidator = async (signupRequest: SignupRequest) => {
   const schema = yup.object().shape({
     username: yup.string().required()
     .min(4)
@@ -17,7 +17,7 @@ export const userSignupValidator = async (userSignupRequest: UserSignupRequest) 
   });
 
   try {
-    return await schema.validate(userSignupRequest, { abortEarly: false });
+    return await schema.validate(signupRequest, { abortEarly: false });
   } catch (err) {
     const validationError = err as yup.ValidationError;
     logger.error(err);
