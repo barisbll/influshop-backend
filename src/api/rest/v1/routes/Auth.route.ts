@@ -4,15 +4,15 @@ import { isAuth } from '../../../../middleware/is-auth';
 import { AuthController } from '../controllers/Auth/Auth.controller';
 
 export const createRouter = () => {
-    const authController = Container.get(AuthController);
+  const authController = Container.get(AuthController);
 
-    const router = express.Router();
+  const router = express.Router();
 
-    router.post('/user/signup', authController.userSignup);
+  router.post('/user/signup', authController.userSignup);
 
-    router.post('/user/login', authController.userLogin);
+  router.post('/user/login', authController.userLogin);
 
-    router.post('/user/refresh-token', isAuth,  authController.userRefreshToken);
+  router.post('/user/refresh-token', isAuth, authController.userRefreshToken);
 
-    return router;
+  return router;
 };
