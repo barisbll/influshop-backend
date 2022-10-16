@@ -14,5 +14,11 @@ export const createRouter = () => {
 
   router.post('/user/refresh-token', isAuth, authController.userRefreshToken);
 
+  router.post('/influencer/signup', authController.influencerSignup);
+
+  router.post('/influencer/login', authController.influencerLogin);
+
+  router.post('/influencer/refresh-token', isAuth, authController.influencerRefreshToken);
+
   return router;
 };

@@ -1,10 +1,10 @@
 import { hash } from 'bcryptjs';
 import { Container, Inject, Service } from 'typedi';
 import { DataSource } from 'typeorm';
-import { UserSignupRequest } from '../../api/rest/v1/controllers/Auth/Auth.types';
-import Cart from '../../db/entities/userRelated/Cart';
-import Favorite from '../../db/entities/userRelated/Favorite';
-import User from '../../db/entities/userRelated/User';
+import { SignupRequest } from '../api/rest/v1/controllers/Auth/Auth.types';
+import Cart from '../db/entities/userRelated/Cart';
+import Favorite from '../db/entities/userRelated/Favorite';
+import User from '../db/entities/userRelated/User';
 
 @Service()
 export class UserService {
@@ -15,7 +15,7 @@ export class UserService {
     this.dataSource = Container.get('dataSource');
   }
 
-  createUser = async (req: UserSignupRequest) => {
+  createUser = async (req: SignupRequest) => {
     const user = new User();
     user.password = await hash(req.password, 12);
     user.username = req.username;
