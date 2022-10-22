@@ -7,7 +7,7 @@ import {
   LoginRequest,
   RefreshTokenRequest,
   SignupRequest,
-} from '../api/rest/v1/controllers/Auth/Auth.types';
+} from '../api/rest/v1/controllers/Auth/Auth.type';
 import { config } from '../config/config';
 import Admin from '../db/entities/adminRelated/Admin';
 import Influencer from '../db/entities/influencerRelated/Influencer';

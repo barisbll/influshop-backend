@@ -2,7 +2,7 @@ import HttpStatus from 'http-status-codes';
 import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
-import { RefreshTokenRequest } from '../Auth.types';
+import { RefreshTokenRequest } from '../Auth.type';
 
 export const refreshTokenValidator = async (refreshTokenRequest: RefreshTokenRequest) => {
   const schema = yup.object().shape({

@@ -1,4 +1,4 @@
-import { Length, Min } from 'class-validator';
+import { Length, Max, Min } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -26,16 +26,15 @@ export default class Item {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @Column({
-    unique: true,
-  })
-  @Length(1, 64)
+  @Column()
+  @Length(4, 20)
   itemName?: string;
 
   @Column({
     nullable: true,
   })
-  @Min(0)
+  @Min(1)
+  @Max(50000)
   itemQuantity?: number;
 
   @Column({
@@ -44,6 +43,8 @@ export default class Item {
   @Length(1, 280)
   itemDescription?: string;
 
+  @Min(1)
+  @Max(50000)
   @Column({
     type: 'numeric',
   })
@@ -52,6 +53,7 @@ export default class Item {
   @Column({
     type: 'enum',
     enum: Stars,
+    nullable: true,
   })
   averageStars?: number;
 

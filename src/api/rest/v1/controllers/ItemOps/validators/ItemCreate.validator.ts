@@ -2,22 +2,20 @@ import HttpStatus from 'http-status-codes';
 import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
-import { SignupRequest } from '../Auth.type';
+import { ItemCreateRequest } from '../ItemOps.type';
 
-export const signupValidator = async (signupRequest: SignupRequest) => {
+export const itemCreateValidator = async (
+    itemCreateRequest: ItemCreateRequest,
+) => {
   const schema = yup.object().shape({
-    username: yup.string().required()
-    .min(4)
-    .max(20),
-    email: yup.string().email().required(),
-    password: yup.string()
-    .min(8)
-    .max(20)
-    .required(),
+    itemName: yup.string().min(4).max(20).required(),
+    itemDescription: yup.string().min(1).max(280).optional(),
+    itemPrice: yup.number().min(1).max(50000).required(),
+    itemQuantity: yup.number().min(1).max(50000).required(),
   });
 
   try {
-    return await schema.validate(signupRequest, { abortEarly: false });
+    return await schema.validate(itemCreateRequest, { abortEarly: false });
   } catch (err) {
     const validationError = err as yup.ValidationError;
     logger.error(err);

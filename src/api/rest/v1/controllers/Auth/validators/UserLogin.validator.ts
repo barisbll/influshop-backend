@@ -2,7 +2,7 @@ import HttpStatus from 'http-status-codes';
 import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
-import { LoginRequest } from '../Auth.types';
+import { LoginRequest } from '../Auth.type';
 
 export const loginValidator = async (loginRequest: LoginRequest) => {
   const schema = yup.object().shape({
