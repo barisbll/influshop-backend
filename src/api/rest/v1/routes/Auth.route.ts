@@ -20,5 +20,11 @@ export const createRouter = () => {
 
   router.post('/influencer/refresh-token', isAuth, authController.influencerRefreshToken);
 
+  router.post('/admin/login', authController.adminLogin);
+
+  router.post('/admin/signup', authController.adminSignup);
+
+  router.post('/admin/refresh-token', isAuth, authController.adminRefreshToken);
+
   return router;
 };

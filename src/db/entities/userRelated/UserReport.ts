@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import Admin from '../adminRelated/Admin';
 import Influencer from '../influencerRelated/Influencer';
 import User from './User';
 
@@ -56,4 +57,9 @@ export default class UserReport {
     nullable: true,
   })
   reporterInfluencer?: Influencer;
+
+  @ManyToOne(() => Admin, (admin) => admin.userReports, {
+    nullable: true,
+  })
+  admin?: Admin;
 }

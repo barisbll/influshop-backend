@@ -4,12 +4,16 @@ import jwt from 'jsonwebtoken';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import {
-  LoginRequest, RefreshTokenRequest, SignupRequest,
+  LoginRequest,
+  RefreshTokenRequest,
+  SignupRequest,
 } from '../api/rest/v1/controllers/Auth/Auth.types';
 import { config } from '../config/config';
+import Admin from '../db/entities/adminRelated/Admin';
 import Influencer from '../db/entities/influencerRelated/Influencer';
 import User from '../db/entities/userRelated/User';
 import { CustomError } from '../util/CustomError';
+import { AdminService } from './Admin.service';
 import { InfluencerService } from './Influencer.service';
 import { UserService } from './User.service';
 
@@ -19,11 +23,13 @@ export class AuthService {
 
   private userService: UserService;
   private influencerService: InfluencerService;
+  private adminService: AdminService;
 
   constructor() {
     this.dataSource = Container.get('dataSource');
     this.userService = Container.get(UserService);
     this.influencerService = Container.get(InfluencerService);
+    this.adminService = Container.get(AdminService);
   }
 
   isEmailUnique = async (email: string): Promise<boolean> => {
@@ -154,9 +160,13 @@ export class AuthService {
       .findOne({ where: { email: body.email } });
 
     if (!influencer) {
-      throw new CustomError('An influencer with that email does not exist', HttpStatus.UNAUTHORIZED, {
-        email: body.email,
-      });
+      throw new CustomError(
+        'An influencer with that email does not exist',
+        HttpStatus.UNAUTHORIZED,
+        {
+          email: body.email,
+        },
+      );
     }
     const isPasswordValid = await compare(body.password, influencer.password as string);
 
@@ -187,6 +197,82 @@ export class AuthService {
     return {
       token: this.createToken(influencer.id as string, influencer.email as string),
       email: influencer.email as string,
+    };
+  };
+
+  adminLogin = async (
+    body: LoginRequest,
+  ): Promise<{ token: string; email: string; isRoot: boolean }> => {
+    if (body.email === config.rootAdminEmail && body.password === config.rootAdminPassword) {
+      return {
+        token: this.createToken('root', body.email),
+        email: body.email,
+        isRoot: true,
+      };
+    }
+
+    const admin = await this.dataSource
+      .getRepository(Admin)
+      .findOne({ where: { email: body.email } });
+
+    if (!admin) {
+      throw new CustomError('An admin with that email does not exist', HttpStatus.UNAUTHORIZED, {
+        email: body.email,
+      });
+    }
+    const isPasswordValid = await compare(body.password, admin.password as string);
+
+    if (!isPasswordValid) {
+      throw new CustomError('Invalid email or password', HttpStatus.UNAUTHORIZED);
+    }
+
+    return {
+      token: this.createToken(admin.id as string, admin.email as string),
+      email: admin.email as string,
+      isRoot: false,
+    };
+  };
+
+  adminSignup = async (body: SignupRequest): Promise<void> => {
+    const isEmailUnique = await this.isEmailUnique(body.email);
+    if (!isEmailUnique) {
+      throw new CustomError('Email already exists', HttpStatus.CONFLICT, {
+        email: body.email,
+      });
+    }
+
+    const isUsernameUnique = await this.isUsernameUnique(body.username);
+    if (!isUsernameUnique) {
+      throw new CustomError('Username already exists', HttpStatus.CONFLICT, {
+        username: body.username,
+      });
+    }
+    try {
+      await this.adminService.createAdmin(body);
+    } catch (err) {
+      throw new CustomError('Error creating admin', HttpStatus.INTERNAL_SERVER_ERROR, {
+        err,
+      });
+    }
+  };
+
+  adminRefreshToken = async (
+    body: RefreshTokenRequest,
+  ): Promise<{ token: string; email: string }> => {
+    const admin = await this.dataSource
+      .getRepository(Admin)
+      .findOne({ where: { id: body.id, email: body.email } });
+
+    if (!admin) {
+      throw new CustomError(
+        'An admin with that id and email does not exist',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return {
+      token: this.createToken(admin.id as string, admin.email as string),
+      email: admin.email as string,
     };
   };
 }

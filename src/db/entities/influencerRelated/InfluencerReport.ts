@@ -4,11 +4,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import Admin from '../adminRelated/Admin';
 import User from '../userRelated/User';
 import Influencer from './Influencer';
 
@@ -31,9 +33,9 @@ export default class InfluencerReport {
   })
   report?: string;
 
+  @Index()
   @Column({
-    default: null,
-    nullable: true,
+    default: false,
   })
   isReportControlled?: boolean;
 
@@ -58,4 +60,9 @@ export default class InfluencerReport {
     nullable: true,
   })
   reporterUser?: User;
+
+  @ManyToOne(() => Admin, (admin) => admin.influencerReports, {
+    nullable: true,
+  })
+  admin?: Admin;
 }

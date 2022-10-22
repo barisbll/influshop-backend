@@ -4,12 +4,14 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import Admin from '../adminRelated/Admin';
 import MessageHistory from './MessageHistory';
 import MessageImage from './MessageImage';
 
@@ -43,9 +45,9 @@ export default class Message {
   })
   report?: string;
 
+  @Index()
   @Column({
-    default: null,
-    nullable: true,
+    default: false,
   })
   isReportControlled?: boolean;
 
@@ -66,4 +68,9 @@ export default class Message {
 
   @ManyToOne(() => MessageHistory, (messageHistory) => messageHistory.messages)
   messageHistory?: MessageHistory;
+
+  @ManyToOne(() => Admin, (admin) => admin.messageReports, {
+    nullable: true,
+  })
+  admin?: Admin;
 }
