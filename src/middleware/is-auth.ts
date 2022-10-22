@@ -3,9 +3,11 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { config } from '../config/config';
 import { CustomError } from '../util/CustomError';
 
-interface Token extends JwtPayload {
+export interface Token extends JwtPayload {
   email: string;
   id: string;
+  iat: number;
+  exp: number;
 }
 
 export interface ExtendedRequest extends Request {

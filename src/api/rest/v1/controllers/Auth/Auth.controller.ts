@@ -3,14 +3,11 @@ import HttpStatus from 'http-status-codes';
 import { Service } from 'typedi';
 import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { AuthService } from '../../../../../service/Auth.service';
-import { LoginRequest, RefreshTokenRequest, SignupRequest } from './Auth.types';
+import { LoginRequest, RefreshTokenRequest, SignupRequest } from './Auth.type';
 import { refreshTokenValidator } from './validators/RefreshToken.validator';
 import { loginValidator } from './validators/UserLogin.validator';
 import { signupValidator } from './validators/UserSignup.validator';
 
-// TODO: After influencer, create Login for the admin
-// where admin can login with the root credentials
-// create also admin entity and admin route
 @Service()
 export class AuthController {
   // eslint-disable-next-line no-unused-vars

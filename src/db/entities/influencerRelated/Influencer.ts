@@ -118,7 +118,6 @@ export default class Influencer extends Person {
   messageHistories?: MessageHistory[];
 
   @OneToMany(() => ItemGroup, (itemGroup) => itemGroup.influencer, {
-    nullable: true,
     onDelete: 'CASCADE',
   })
   itemGroups?: ItemGroup[];

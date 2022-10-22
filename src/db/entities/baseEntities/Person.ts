@@ -17,7 +17,7 @@ export default class Person extends BaseEntity {
   @Column({
     unique: true,
   })
-  @Length(1, 16)
+  @Length(4, 20)
   username?: string;
 
   @Column({

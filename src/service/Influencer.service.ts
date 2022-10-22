@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs';
 import { Container, Inject, Service } from 'typedi';
 import { DataSource } from 'typeorm';
-import { SignupRequest } from '../api/rest/v1/controllers/Auth/Auth.types';
+import { SignupRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
 import Category from '../db/entities/influencerRelated/Category';
 import Influencer from '../db/entities/influencerRelated/Influencer';
 
@@ -19,6 +19,7 @@ export class InfluencerService {
     influencer.password = await hash(req.password, 12);
     influencer.username = req.username;
     influencer.email = req.email;
+    influencer.itemGroups = [];
     await this.dataSource.manager.save(influencer);
 
     const category = new Category();

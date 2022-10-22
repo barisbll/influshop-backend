@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs';
 import { Container, Inject, Service } from 'typedi';
 import { DataSource } from 'typeorm';
-import { SignupRequest } from '../api/rest/v1/controllers/Auth/Auth.types';
+import { SignupRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
 import Cart from '../db/entities/userRelated/Cart';
 import Favorite from '../db/entities/userRelated/Favorite';
 import User from '../db/entities/userRelated/User';

@@ -15,10 +15,8 @@ export default class ItemGroup {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @Column({
-    unique: true,
-  })
-  @Length(1, 64)
+  @Column()
+  @Length(4, 20)
   itemGroupName?: string;
 
   @Column({
@@ -32,7 +30,6 @@ export default class ItemGroup {
   })
   isVisible?: boolean;
 
-  // featureName: Enum array
   @Column({
     type: 'simple-json',
   })
