@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
 import {
-  Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn,
+  Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn,
 } from 'typeorm';
 
+import Admin from '../adminRelated/Admin';
 import Influencer from '../influencerRelated/Influencer';
 import User from '../userRelated/User';
 
@@ -25,9 +26,9 @@ export default class ItemReport {
   })
   report?: string;
 
+  @Index()
   @Column({
-    default: null,
-    nullable: true,
+    default: false,
   })
   isReportControlled?: boolean;
 
@@ -46,4 +47,9 @@ export default class ItemReport {
     nullable: true,
   })
   reporterInfluencer?: Influencer;
+
+  @ManyToOne(() => Admin, (admin) => admin.itemReports, {
+    nullable: true,
+  })
+  admin?: Admin;
 }

@@ -4,11 +4,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import Admin from '../adminRelated/Admin';
 import Influencer from '../influencerRelated/Influencer';
 import User from '../userRelated/User';
 import Comment from './Comment';
@@ -31,9 +33,9 @@ export default class CommentReport {
   })
   report?: string;
 
+  @Index()
   @Column({
-    default: null,
-    nullable: true,
+    default: false,
   })
   isReportControlled?: boolean;
 
@@ -58,4 +60,9 @@ export default class CommentReport {
 
   @ManyToOne(() => Comment, (comment) => comment.commentReports)
   reportedComment?: Comment;
+
+  @ManyToOne(() => Admin, (admin) => admin.commentReports, {
+    nullable: true,
+  })
+  admin?: Admin;
 }

@@ -74,7 +74,6 @@ export class AuthController {
     }
 };
 
-  // TODO
   influencerRefreshToken = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const { decodedToken } = req;
 
@@ -83,6 +82,42 @@ export class AuthController {
         decodedToken as unknown as RefreshTokenRequest,
       );
       const { token, email } = await this.authService.influencerRefreshToken(validateBody);
+      res.json({ message: 'Token Successfully Refreshed', token, email }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  adminSignup = async (req: Request, res: Response, next:NextFunction) => {
+    req.body as SignupRequest;
+    try {
+      const validatedBody = await signupValidator(req.body);
+      await this.authService.adminSignup(validatedBody);
+      res.json({ message: 'Admin Successfully Created' }).status(HttpStatus.CREATED);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  adminLogin = async (req: Request, res: Response, next: NextFunction) => {
+    req.body as LoginRequest;
+    try {
+      const validateBody = await loginValidator(req.body);
+      const { token, email, isRoot } = await this.authService.adminLogin(validateBody);
+      res.json({ message: 'Admin Successfully Logged In', token, email, isRoot }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  adminRefreshToken = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const { decodedToken } = req;
+
+    try {
+      const validateBody = await refreshTokenValidator(
+        decodedToken as unknown as RefreshTokenRequest,
+      );
+      const { token, email } = await this.authService.adminRefreshToken(validateBody);
       res.json({ message: 'Token Successfully Refreshed', token, email }).status(HttpStatus.OK);
     } catch (err) {
       next(err);

@@ -33,6 +33,18 @@ const tempConfig = convict({
     default: 'somekey',
     env: 'JWT_KEY',
   },
+  rootAdminEmail: {
+    doc: 'The email of the root admin',
+    format: nonEmptyString('ROOT_ADMIN_EMAIL'),
+    default: 'root',
+    env: 'ROOT_ADMIN_EMAIL',
+  },
+  rootAdminPassword: {
+    doc: 'The password of the root admin',
+    format: nonEmptyString('ROOT_ADMIN_PASSWORD'),
+    default: 'root',
+    env: 'ROOT_ADMIN_PASSWORD',
+  },
   db: {
     host: {
       format: nonEmptyString('DATABASE_HOST'),
