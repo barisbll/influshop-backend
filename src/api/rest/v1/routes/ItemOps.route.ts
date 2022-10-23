@@ -8,7 +8,7 @@ export const createRouter = () => {
 
   const router = express.Router();
 
-  router.get('/item-group/:id', itemOpsController.itemGroupGet);
+  router.get('/item-group/:itemGroupId', itemOpsController.itemGroupGet);
 
   router.get('/item-groups', isAuth, itemOpsController.itemGroupsGet);
 
@@ -20,7 +20,7 @@ export const createRouter = () => {
 
   router.get('/items/:influencerName', itemOpsController.itemsGet);
 
-  router.get('/item/:id', itemOpsController.itemGet);
+  router.get('/item/:itemId', itemOpsController.itemGet);
 
   router.get('/item/:influencerName/:itemGroupName/extra', itemOpsController.itemGetWithExtraFeatures);
 

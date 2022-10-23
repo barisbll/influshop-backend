@@ -35,7 +35,7 @@ export class ItemOpsController {
   };
 
   itemGroupGet = async (req: Request, res: Response, next: NextFunction) => {
-    const itemGroupGetRequest = req.params as { id: string };
+    const itemGroupGetRequest = req.params as { itemGroupId: string };
 
     try {
       const validatedBody = await itemGroupGetValidator(itemGroupGetRequest);
@@ -76,15 +76,12 @@ export class ItemOpsController {
     }
   };
 
-  // TODO: After implementation ask elvin to control item
-  // screen by the extraFeatures query parameters
-  // for main page to item page
   itemGet = async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params as { id: string };
+    const { itemId } = req.params as { itemId: string };
 
     try {
       const validatedBody = await itemGetValidator({
-        id,
+        itemId,
       });
 
       const item = await this.itemOps.itemGet(validatedBody.id);

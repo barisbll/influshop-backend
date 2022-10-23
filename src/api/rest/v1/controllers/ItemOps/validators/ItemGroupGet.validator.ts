@@ -4,10 +4,10 @@ import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
 export const itemGroupGetValidator = async (
-    itemGroupGetRequest: {id: string},
+    itemGroupGetRequest: {itemGroupId: string},
 ) => {
   const schema = yup.object().shape({
-    id: yup.string().uuid().required(),
+    itemGroupId: yup.string().uuid().required(),
   });
 
   try {
