@@ -33,7 +33,7 @@ export default class Item {
   @Column({
     nullable: true,
   })
-  @Min(1)
+  @Min(0)
   @Max(50000)
   itemQuantity?: number;
 
