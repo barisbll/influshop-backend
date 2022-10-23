@@ -3,9 +3,9 @@ import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
-export const itemGetValidator = async (itemGetRequest: { id: string}) => {
+export const itemGetValidator = async (itemGetRequest: { itemId: string}) => {
   const schema = yup.object().shape({
-    id: yup.string().uuid().required(),
+    itemId: yup.string().uuid().required(),
   });
 
   try {
