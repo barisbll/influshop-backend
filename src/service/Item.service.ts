@@ -1,3 +1,4 @@
+import clone from 'clone';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import {
@@ -33,7 +34,9 @@ export class ItemService {
     await this.dataSource.getRepository(Influencer).save(influencer);
   };
 
-  createItemWithExtra = async (body: ItemWithExtraCreateRequest, influencer: Influencer) => {
+  createItemWithExtra = async (body: ItemWithExtraCreateRequest, influencerOld: Influencer) => {
+    const influencer = clone(influencerOld);
+
     const itemGroup = await this.dataSource.getRepository(ItemGroup).findOne({
       where: { itemGroupName: body.itemGroupName, influencer: { id: influencer.id } },
       relations: ['items'],
@@ -90,8 +93,9 @@ export class ItemService {
 
     await this.dataSource.getRepository(Item).save(item);
 
-    // eslint-disable-next-line no-param-reassign
     influencer.items = [...(influencer.items || []), item];
+    influencer.pinnedItem = body.isPinned ? item : influencer.pinnedItem;
+
     const defaultCategory = influencer.categories?.find((category) => category.name === 'default');
     if (defaultCategory) {
       defaultCategory.items = [...(defaultCategory.items || []), item];
@@ -102,13 +106,14 @@ export class ItemService {
 
     await this.dataSource.getRepository(Influencer).save(influencer);
 
-    // eslint-disable-next-line no-param-reassign
     itemGroup.items = [...(itemGroup.items || []), item];
 
     await this.dataSource.getRepository(ItemGroup).save(itemGroup);
   };
 
-  createItem = async (body: ItemCreateRequest, influencer: Influencer) => {
+  createItem = async (body: ItemCreateRequest, influencerOld: Influencer) => {
+    const influencer = clone(influencerOld);
+
     const item = new Item();
     item.itemName = body.itemName;
     item.itemPrice = body.itemPrice;
@@ -120,8 +125,9 @@ export class ItemService {
 
     await this.dataSource.getRepository(Item).save(item);
 
-    // eslint-disable-next-line no-param-reassign
     influencer.items = [...(influencer.items || []), item];
+    influencer.pinnedItem = body.isPinned ? item : influencer.pinnedItem;
+
     const defaultCategory = influencer.categories?.find((category) => category.name === 'default');
     if (defaultCategory) {
       defaultCategory.items = [...(defaultCategory.items || []), item];

@@ -14,6 +14,7 @@ export const itemWithExtraCreateValidator = async (
     itemPrice: yup.number().min(1).max(50000).required(),
     itemQuantity: yup.number().min(1).max(50000).required(),
     itemGroupName: yup.string().min(4).max(20).required(),
+    isPinned: yup.boolean().required(),
   });
 
   try {

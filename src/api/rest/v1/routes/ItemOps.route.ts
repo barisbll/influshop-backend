@@ -8,13 +8,21 @@ export const createRouter = () => {
 
   const router = express.Router();
 
-  router.get('/item-group', isAuth, itemOpsController.itemGroupGet);
+  router.get('/item-group/:id', itemOpsController.itemGroupGet);
+
+  router.get('/item-groups', isAuth, itemOpsController.itemGroupsGet);
 
   router.post('/item-group', isAuth, itemOpsController.itemGroupCreate);
 
   router.post('/item/extra', isAuth, itemOpsController.itemCreateWithExtra);
 
   router.post('/item', isAuth, itemOpsController.itemCreate);
+
+  router.get('/items/:influencerName', itemOpsController.itemsGet);
+
+  router.get('/item/:id', itemOpsController.itemGet);
+
+  router.get('/item/:influencerName/:itemGroupName/extra', itemOpsController.itemGetWithExtraFeatures);
 
   return router;
 };
