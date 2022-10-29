@@ -6,17 +6,21 @@ import { ItemOpsService } from '../../../../../service/ItemOps.service';
 import { CustomError } from '../../../../../util/CustomError';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
 import {
-    ItemCreateRequest,
-    ItemGroupCreateRequest,
-    ItemWithExtraCreateRequest,
+  ItemCreateRequest,
+  ItemGroupCreateRequest,
+  ItemGroupUpdateRequest, ItemUpdateRequest, ItemWithExtraCreateRequest,
+  ItemWithExtraUpdateRequest,
 } from './ItemOps.type';
 import { itemCreateValidator } from './validators/ItemCreate.validator';
 import { itemGetValidator } from './validators/ItemGet.validator';
 import { itemGetWithExtraFeaturesValidator } from './validators/ItemGetWithExtraFeatures.validator';
 import { itemGroupCreateValidator } from './validators/ItemGroupCreate.validator';
 import { itemGroupGetValidator } from './validators/ItemGroupGet.validator';
+import { itemGroupUpdateValidator } from './validators/ItemGroupUpdate.validator';
 import { itemsGetValidator } from './validators/ItemsGet.validator';
+import { itemUpdateValidator } from './validators/ItemUpdate.validator';
 import { itemWithExtraCreateValidator } from './validators/ItemWithExtraCreate.validator';
+import { itemWithExtraUpdateValidator } from './validators/ItemWithExtraUpdate.validator';
 
 @Service()
 export class ItemOpsController {
@@ -39,20 +43,8 @@ export class ItemOpsController {
 
     try {
       const validatedBody = await itemGroupGetValidator(itemGroupGetRequest);
-      const itemGroup = await this.itemOps.itemGroupGet(validatedBody.id);
+      const itemGroup = await this.itemOps.itemGroupGet(validatedBody.itemGroupId);
       res.json({ message: 'Item Group Successfully Retrieved', itemGroup }).status(HttpStatus.OK);
-    } catch (err) {
-      next(err);
-    }
-  };
-
-  itemGroupCreate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
-    req.body as ItemGroupCreateRequest;
-    const decodedToken = req.decodedToken as RefreshTokenRequest;
-    try {
-      const validatedBody = (await itemGroupCreateValidator(req.body)) as ItemGroupCreateRequest;
-      await this.itemOps.itemGroupCreate(validatedBody, decodedToken);
-      res.json({ message: 'ItemGroup Successfully Created' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
@@ -84,7 +76,7 @@ export class ItemOpsController {
         itemId,
       });
 
-      const item = await this.itemOps.itemGet(validatedBody.id);
+      const item = await this.itemOps.itemGet(validatedBody.itemId);
       res.json({ message: 'Item Successfully Retrieved', item }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
@@ -123,6 +115,18 @@ export class ItemOpsController {
     }
   };
 
+  itemGroupCreate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    req.body as ItemGroupCreateRequest;
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    try {
+      const validatedBody = (await itemGroupCreateValidator(req.body)) as ItemGroupCreateRequest;
+      await this.itemOps.itemGroupCreate(validatedBody, decodedToken);
+      res.json({ message: 'ItemGroup Successfully Created' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   itemCreateWithExtra = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     req.body as ItemWithExtraCreateRequest;
     const decodedToken = req.decodedToken as RefreshTokenRequest;
@@ -146,6 +150,49 @@ export class ItemOpsController {
       const validatedBody = (await itemCreateValidator(req.body)) as unknown as ItemCreateRequest;
       await this.itemOps.itemCreate(validatedBody, decodedToken);
       res.json({ message: 'Item Successfully Created' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  itemGroupUpdate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    req.body as ItemGroupUpdateRequest;
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const validatedBody = (await itemGroupUpdateValidator(req.body)) as ItemGroupUpdateRequest;
+      await this.itemOps.itemGroupUpdate(validatedBody, decodedToken);
+      res.json({ message: 'ItemGroup Successfully Updated' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // TODO: Add check for extraFeatures of new item,
+  // it shouldn't be different than its old itemGroup's extra features
+  itemUpdateWithExtra = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    req.body as ItemWithExtraUpdateRequest;
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const validatedBody = (await itemWithExtraUpdateValidator(
+        req.body,
+      )) as unknown as ItemWithExtraUpdateRequest;
+      await this.itemOps.itemUpdateWithExtra(validatedBody, decodedToken);
+      res.json({ message: 'Item Successfully Updated' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  itemUpdate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    req.body as ItemUpdateRequest;
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const validatedBody = (await itemUpdateValidator(req.body)) as unknown as ItemUpdateRequest;
+      await this.itemOps.itemUpdate(validatedBody, decodedToken);
+      res.json({ message: 'Item Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

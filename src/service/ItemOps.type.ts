@@ -14,6 +14,7 @@ export interface MappedObject {
 }
 
 export interface ItemGetResult {
+  id: string;
   name: string;
   price: number;
   available: boolean;
