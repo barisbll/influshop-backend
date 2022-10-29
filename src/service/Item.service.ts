@@ -1,16 +1,20 @@
 import clone from 'clone';
+import HttpStatus from 'http-status-codes';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import {
-    ItemCreateRequest,
-    ItemGroupCreateRequest,
-    ItemWithExtraCreateRequest,
+  ItemCreateRequest,
+  ItemGroupCreateRequest,
+  ItemUpdateRequest,
+  ItemWithExtraCreateRequest,
+  ItemWithExtraUpdateRequest,
 } from '../api/rest/v1/controllers/ItemOps/ItemOps.type';
 import Category from '../db/entities/influencerRelated/Category';
 import Influencer from '../db/entities/influencerRelated/Influencer';
 import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
 import { CustomError } from '../util/CustomError';
+import { arrayEquals } from './ItemOps.helper';
 
 @Service()
 export class ItemService {
@@ -78,8 +82,6 @@ export class ItemService {
       throw new CustomError('Item With Extra Feature Already Exists');
     }
 
-    await this.dataSource.getRepository(ItemGroup).save(itemGroup);
-
     const item = new Item();
     item.itemName = body.itemName;
     item.itemGroup = itemGroup;
@@ -137,5 +139,133 @@ export class ItemService {
     }
 
     await this.dataSource.getRepository(Influencer).save(influencer);
+  };
+
+  updateItemGroup = async (body: ItemGroupCreateRequest, itemGroup: ItemGroup) => {
+    const newExtraFeatures: Record<string, string[]> = {};
+    body.extraFeatures.forEach((extraFeature) => {
+      newExtraFeatures[extraFeature] = [];
+    });
+
+    await this.dataSource
+      .createQueryBuilder()
+      .update(ItemGroup)
+      .set({ itemGroupName: body.itemGroupName, extraFeatures: newExtraFeatures })
+      .where({ id: itemGroup.id })
+      .execute();
+  };
+
+  // Add check for not changing extra features something other than the itemGroup
+  updateItemWithExtra = async (body: ItemWithExtraUpdateRequest, item: Item) => {
+    let newItemGroup: ItemGroup | null = item.itemGroup as ItemGroup;
+    if (body.itemGroupName !== item.itemGroup?.itemGroupName) {
+      newItemGroup = await this.dataSource.getRepository(ItemGroup).findOne({
+        where: { itemGroupName: body.itemGroupName, influencer: { id: item.influencer?.id } },
+        relations: ['items'],
+      });
+
+      if (!newItemGroup) {
+        throw new CustomError('Item Group With Provided Name Does Not Exist', HttpStatus.NOT_FOUND);
+      }
+
+      if (!arrayEquals(Object.keys(newItemGroup.extraFeatures), Object.keys(item.extraFeatures))) {
+        throw new CustomError(
+          'Update For ItemGroups With Different Extra Features Currently Not Supported',
+        );
+      }
+
+      const itemFeatureCounter = new Map<string, number>();
+      Object.keys(item.extraFeatures).forEach((key) => {
+        itemFeatureCounter.set(key, 0);
+      });
+
+      for (let i = 0; i < (item.itemGroup?.items?.length as number); i += 1) {
+        const itemInGroup = item.itemGroup?.items?.[i] as Item;
+
+        let isAllFeaturesIncluded = true;
+        itemFeatureCounter.forEach((value, key) => {
+          if (itemInGroup.extraFeatures[key] === item.extraFeatures[key]) {
+            itemFeatureCounter.set(key, value + 1);
+
+            isAllFeaturesIncluded =
+              (itemFeatureCounter.get(key) as number) > 1 && isAllFeaturesIncluded && i !== 0;
+          }
+        });
+        // if (isAllFeaturesIncluded) {
+        //   break;
+        // }
+
+        if (i === (item.itemGroup?.items?.length as number) - 1) {
+          itemFeatureCounter.forEach((value, key) => {
+            if (value === 1) {
+              const itemGroupExtraFeatures: string[] = (item.itemGroup as ItemGroup).extraFeatures[
+                key
+              ];
+
+              const filteredExtraFeatures = itemGroupExtraFeatures.filter(
+                (extraFeature) => extraFeature !== item.extraFeatures[key],
+              );
+              // eslint-disable-next-line no-param-reassign
+              (item.itemGroup as ItemGroup).extraFeatures[key] = filteredExtraFeatures;
+            }
+          });
+        }
+      }
+    }
+    if (body.itemGroupName !== item.itemGroup?.itemGroupName) {
+      // update old item group
+      await this.dataSource
+        .createQueryBuilder()
+        .update(ItemGroup)
+        .set({
+          extraFeatures: item.itemGroup?.extraFeatures,
+        })
+        .where({ id: item.itemGroup?.id })
+        .execute();
+
+      Object.keys(newItemGroup.extraFeatures).forEach((key) => {
+        if (!(newItemGroup as ItemGroup).extraFeatures[key].includes(item.extraFeatures[key])) {
+          (newItemGroup as ItemGroup).extraFeatures[key].push(item.extraFeatures[key]);
+        }
+      });
+
+      // update new item group
+      await this.dataSource
+        .createQueryBuilder()
+        .update(ItemGroup)
+        .set({
+          extraFeatures: newItemGroup.extraFeatures,
+        })
+        .where({ id: newItemGroup.id })
+        .execute();
+    }
+
+    await this.dataSource
+      .createQueryBuilder()
+      .update(Item)
+      .set({
+        itemName: body.itemName,
+        itemPrice: body.itemPrice,
+        itemQuantity: body.itemQuantity,
+        itemDescription: body.itemDescription,
+        extraFeatures: body.extraFeatures,
+        itemGroup: newItemGroup,
+      })
+      .where({ id: item.id })
+      .execute();
+  };
+
+  updateItem = async (body: ItemUpdateRequest, item: Item) => {
+    await this.dataSource
+      .createQueryBuilder()
+      .update(Item)
+      .set({
+        itemName: body.itemName,
+        itemPrice: body.itemPrice,
+        itemQuantity: body.itemQuantity,
+        itemDescription: body.itemDescription,
+      })
+      .where({ id: item.id })
+      .execute();
   };
 }

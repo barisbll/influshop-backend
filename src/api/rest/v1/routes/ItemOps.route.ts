@@ -12,17 +12,23 @@ export const createRouter = () => {
 
   router.get('/item-groups', isAuth, itemOpsController.itemGroupsGet);
 
+  router.get('/items/:influencerName', itemOpsController.itemsGet);
+
+  router.get('/item/:itemId', itemOpsController.itemGet);
+
+  router.get('/item/:influencerName/:itemGroupName/extra', itemOpsController.itemGetWithExtraFeatures);
+
   router.post('/item-group', isAuth, itemOpsController.itemGroupCreate);
 
   router.post('/item/extra', isAuth, itemOpsController.itemCreateWithExtra);
 
   router.post('/item', isAuth, itemOpsController.itemCreate);
 
-  router.get('/items/:influencerName', itemOpsController.itemsGet);
+  router.put('/item-group', isAuth, itemOpsController.itemGroupUpdate);
 
-  router.get('/item/:itemId', itemOpsController.itemGet);
+  router.put('/item/extra', isAuth, itemOpsController.itemUpdateWithExtra);
 
-  router.get('/item/:influencerName/:itemGroupName/extra', itemOpsController.itemGetWithExtraFeatures);
+  router.put('/item', isAuth, itemOpsController.itemUpdate);
 
   return router;
 };
