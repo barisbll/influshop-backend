@@ -340,4 +340,123 @@ export class ItemOpsService {
 
     await this.itemService.updateItem(body, item);
   };
+
+  itemGroupDelete = async (
+    itemGroupId: string,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<void> => {
+    const influencer = await this.isInfluencer(decodedToken.id, true, false);
+
+    if (!influencer) {
+      throw new CustomError(
+        'The Account Is Not An Influencer or Does Not Exist',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const itemGroup = await this.dataSource.getRepository(ItemGroup).findOne({
+      where: { id: itemGroupId },
+      relations: {
+        items: true,
+      },
+    });
+
+    if (!itemGroup) {
+      throw new CustomError('The Item Group Does Not Exist', HttpStatus.NOT_FOUND);
+    }
+
+    if ((itemGroup.items as [])?.length > 0) {
+      throw new CustomError(
+        'The Item Group Has Items, It Cannot Be Deleted',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    await this.itemService.deleteItemGroup(influencer, itemGroup);
+  };
+
+  itemDeleteWithExtra = async (
+    itemId: string,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<void> => {
+    const influencer = await this.dataSource.getRepository(Influencer).findOne({
+      where: { id: decodedToken.id },
+      relations: {
+        itemGroups: {
+          items: true,
+        },
+        items: true,
+      },
+    });
+
+    if (!influencer) {
+      throw new CustomError(
+        'The Account Is Not An Influencer or Does Not Exist',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const item = await this.dataSource.getRepository(Item).findOne({
+      where: { id: itemId },
+      relations: {
+        itemGroup: {
+          items: true,
+        },
+        images: true,
+        comments: {
+          commentLikes: true,
+          commentImages: true,
+          commentReports: true,
+        },
+        cartItems: {
+          cart: true,
+        },
+        itemStars: true,
+        itemReports: true,
+      },
+    });
+
+    if (!item) {
+      throw new CustomError('The Item Does Not Exist', HttpStatus.NOT_FOUND);
+    }
+
+    await this.itemService.deleteItemWithExtra(influencer, item);
+  };
+
+  itemDelete = async (
+    itemId: string,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<void> => {
+    const influencer = await this.isInfluencer(decodedToken.id, false, true);
+
+    if (!influencer) {
+      throw new CustomError(
+        'The Account Is Not An Influencer or Does Not Exist',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const item = await this.dataSource.getRepository(Item).findOne({
+      where: { id: itemId },
+      relations: {
+        images: true,
+        comments: {
+          commentLikes: true,
+          commentImages: true,
+          commentReports: true,
+        },
+        cartItems: {
+          cart: true,
+        },
+        itemStars: true,
+        itemReports: true,
+      },
+    });
+
+    if (!item) {
+      throw new CustomError('The Item Does Not Exist', HttpStatus.NOT_FOUND);
+    }
+
+    await this.itemService.deleteItem(influencer, item);
+  };
 }

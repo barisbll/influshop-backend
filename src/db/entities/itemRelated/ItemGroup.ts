@@ -1,7 +1,7 @@
 import { Length } from 'class-validator';
 import {
   Column,
-  CreateDateColumn, Entity,
+  CreateDateColumn, DeleteDateColumn, Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -41,9 +41,11 @@ export default class ItemGroup {
   @UpdateDateColumn()
   updatedAt?: Date;
 
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   @OneToMany(() => Item, (item) => item.itemGroup, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   items?: Item[];
 

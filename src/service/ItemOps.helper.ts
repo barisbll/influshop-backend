@@ -1,4 +1,5 @@
 import Item from '../db/entities/itemRelated/Item';
+import ItemGroup from '../db/entities/itemRelated/ItemGroup';
 import { MappedObject } from './ItemOps.type';
 
 export const itemsMapper = (
@@ -66,8 +67,53 @@ export const itemsMapper = (
 };
 
 export function arrayEquals(a: string[], b: string[]): boolean {
-  return Array.isArray(a) &&
+  return (
+    Array.isArray(a) &&
     Array.isArray(b) &&
     a.length === b.length &&
-    a.every((val, index) => val === b[index]);
+    a.every((val, index) => val === b[index])
+  );
 }
+
+export const updateItemGroupExtraFeaturesOnItemDelete = (
+  itemGroup: ItemGroup,
+  item: Item,
+): ItemGroup => {
+  // check the logic, maybe modulate also the previous itemWithExtra
+  const itemFeatureCounter = new Map<string, number>();
+  Object.keys(item.extraFeatures).forEach((key) => {
+    itemFeatureCounter.set(key, 0);
+  });
+
+  for (let i = 0; i < (itemGroup.items?.length as number); i += 1) {
+    const itemInGroup = itemGroup?.items?.[i] as Item;
+
+    let isAllFeaturesIncluded = true;
+    itemFeatureCounter.forEach((value, key) => {
+      if (itemInGroup.extraFeatures[key] === item.extraFeatures[key]) {
+        itemFeatureCounter.set(key, value + 1);
+
+        isAllFeaturesIncluded =
+          (itemFeatureCounter.get(key) as number) > 1 && isAllFeaturesIncluded && i !== 0;
+      }
+    });
+    // if (isAllFeaturesIncluded) {
+    //   break;
+    // }
+
+    if (i === (itemGroup?.items?.length as number) - 1) {
+      itemFeatureCounter.forEach((value, key) => {
+        if (value === 1) {
+          const itemGroupExtraFeatures: string[] = (item.itemGroup as ItemGroup).extraFeatures[key];
+
+          const filteredExtraFeatures = itemGroupExtraFeatures.filter(
+            (extraFeature) => extraFeature !== item.extraFeatures[key],
+          );
+          // eslint-disable-next-line no-param-reassign
+          itemGroup.extraFeatures[key] = filteredExtraFeatures;
+        }
+      });
+    }
+  }
+  return itemGroup;
+};

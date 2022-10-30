@@ -30,5 +30,11 @@ export const createRouter = () => {
 
   router.put('/item', isAuth, itemOpsController.itemUpdate);
 
+  router.delete('/item-group/:itemGroupId', isAuth, itemOpsController.itemGroupDelete);
+
+  router.delete('/item/extra/:itemId', isAuth, itemOpsController.itemDeleteWithExtra);
+
+  router.delete('/item/:itemId', isAuth, itemOpsController.itemDelete);
+
   return router;
 };
