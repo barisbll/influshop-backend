@@ -12,9 +12,11 @@ import {
   ItemWithExtraUpdateRequest,
 } from './ItemOps.type';
 import { itemCreateValidator } from './validators/ItemCreate.validator';
+import { itemDeleteWithExtraValidator } from './validators/ItemDeleteWithExtra.validator';
 import { itemGetValidator } from './validators/ItemGet.validator';
 import { itemGetWithExtraFeaturesValidator } from './validators/ItemGetWithExtraFeatures.validator';
 import { itemGroupCreateValidator } from './validators/ItemGroupCreate.validator';
+import { itemGroupDeleteValidator } from './validators/ItemGroupDelete.validator';
 import { itemGroupGetValidator } from './validators/ItemGroupGet.validator';
 import { itemGroupUpdateValidator } from './validators/ItemGroupUpdate.validator';
 import { itemsGetValidator } from './validators/ItemsGet.validator';
@@ -193,6 +195,45 @@ export class ItemOpsController {
       const validatedBody = (await itemUpdateValidator(req.body)) as unknown as ItemUpdateRequest;
       await this.itemOps.itemUpdate(validatedBody, decodedToken);
       res.json({ message: 'Item Successfully Updated' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  itemGroupDelete = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { itemGroupId } = req.params as { itemGroupId: string };
+
+    try {
+      const validatedBody = await itemGroupDeleteValidator({ itemGroupId });
+      await this.itemOps.itemGroupDelete(validatedBody.itemGroupId, decodedToken);
+      res.json({ message: 'ItemGroup Successfully Deleted' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  itemDeleteWithExtra = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { itemId } = req.params as { itemId: string };
+
+    try {
+      const validatedBody = await itemDeleteWithExtraValidator({ itemId });
+      await this.itemOps.itemDeleteWithExtra(validatedBody.itemId, decodedToken);
+      res.json({ message: 'Item Successfully Deleted' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  itemDelete = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { itemId } = req.params as { itemId: string };
+
+    try {
+      const validatedBody = await itemDeleteWithExtraValidator({ itemId });
+      await this.itemOps.itemDelete(validatedBody.itemId, decodedToken);
+      res.json({ message: 'Item Successfully Deleted' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

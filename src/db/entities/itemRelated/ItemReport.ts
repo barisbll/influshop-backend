@@ -6,6 +6,7 @@ import {
 import Admin from '../adminRelated/Admin';
 import Influencer from '../influencerRelated/Influencer';
 import User from '../userRelated/User';
+import Item from './Item';
 
 // eslint-disable-next-line no-shadow
 export enum ItemReportEnum {
@@ -37,6 +38,9 @@ export default class ItemReport {
 
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @ManyToOne(() => Item, (item) => item.itemReports)
+  item?: Item;
 
   @ManyToOne(() => User, (user) => user.itemReports, {
     nullable: true,

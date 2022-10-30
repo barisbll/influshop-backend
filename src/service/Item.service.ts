@@ -14,7 +14,8 @@ import Influencer from '../db/entities/influencerRelated/Influencer';
 import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
 import { CustomError } from '../util/CustomError';
-import { arrayEquals } from './ItemOps.helper';
+import { itemSoftDeleteOperations } from './Item.helper';
+import { arrayEquals, updateItemGroupExtraFeaturesOnItemDelete } from './ItemOps.helper';
 
 @Service()
 export class ItemService {
@@ -155,7 +156,6 @@ export class ItemService {
       .execute();
   };
 
-  // Add check for not changing extra features something other than the itemGroup
   updateItemWithExtra = async (body: ItemWithExtraUpdateRequest, item: Item) => {
     let newItemGroup: ItemGroup | null = item.itemGroup as ItemGroup;
     if (body.itemGroupName !== item.itemGroup?.itemGroupName) {
@@ -267,5 +267,68 @@ export class ItemService {
       })
       .where({ id: item.id })
       .execute();
+  };
+
+  deleteItemGroup = async (oldInfluencer: Influencer, itemGroup: ItemGroup) => {
+    const influencer = clone(oldInfluencer);
+
+    influencer.itemGroups = influencer.itemGroups?.filter(
+      (itemGroupInfluencer) => itemGroupInfluencer.id !== itemGroup.id,
+    );
+
+    await this.dataSource.getRepository(Influencer).save(influencer);
+
+    await this.dataSource
+      .getRepository(ItemGroup)
+      .createQueryBuilder()
+      .softDelete()
+      .from(ItemGroup)
+      .where('id = :id', { id: itemGroup.id })
+      .execute();
+  };
+
+  // solve the itemGroup issue and also make the update modular (maybe after delete)
+  deleteItemWithExtra = async (oldInfluencer: Influencer, item: Item) => {
+    const influencer = clone(oldInfluencer);
+
+    const itemGroup = influencer.itemGroups?.find(
+      (itemGroupInfluencer) => itemGroupInfluencer.id === item.itemGroup?.id,
+    );
+
+    if (itemGroup) {
+      const updatedItemGroup = updateItemGroupExtraFeaturesOnItemDelete(itemGroup, item);
+      updatedItemGroup.items = updatedItemGroup.items?.filter(
+        (itemGroupItem) => itemGroupItem.id !== item.id,
+      );
+      await this.dataSource.getRepository(ItemGroup).save(updatedItemGroup);
+    }
+
+    const defaultCategory = influencer.categories?.find((category) => category.name === 'default');
+    if (defaultCategory) {
+      defaultCategory.items = defaultCategory.items?.filter(
+        (defaultCategoryItem) => defaultCategoryItem.id !== item.id,
+      );
+      await this.dataSource.getRepository(Category).save(defaultCategory);
+    }
+
+    await this.dataSource.getRepository(Influencer).save(influencer);
+
+    await itemSoftDeleteOperations(item, this.dataSource);
+  };
+
+  deleteItem = async (oldInfluencer: Influencer, item: Item) => {
+    const influencer = clone(oldInfluencer);
+
+    const defaultCategory = influencer.categories?.find((category) => category.name === 'default');
+    if (defaultCategory) {
+      defaultCategory.items = defaultCategory.items?.filter(
+        (defaultCategoryItem) => defaultCategoryItem.id !== item.id,
+      );
+      await this.dataSource.getRepository(Category).save(defaultCategory);
+    }
+
+    await this.dataSource.getRepository(Influencer).save(influencer);
+
+    await itemSoftDeleteOperations(item, this.dataSource);
   };
 }

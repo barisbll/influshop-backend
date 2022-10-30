@@ -19,6 +19,7 @@ import Favorite from '../userRelated/Favorite';
 import Comment from './Comment';
 import ItemGroup from './ItemGroup';
 import ItemImage from './ItemImage';
+import ItemReport from './ItemReport';
 import ItemStar from './ItemStar';
 
 @Entity('item')
@@ -111,6 +112,12 @@ export default class Item {
     onDelete: 'CASCADE',
   })
   comments?: Comment[];
+
+  @OneToMany(() => ItemReport, (itemReport) => itemReport.item, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  itemReports?: ItemReport[];
 
   @ManyToOne(() => Influencer, (influencer) => influencer.items)
   influencer?: Influencer;
