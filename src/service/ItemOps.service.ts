@@ -6,7 +6,10 @@ import { RefreshTokenRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
 import {
   ItemCreateRequest,
   ItemGroupCreateRequest,
-  ItemGroupUpdateRequest, ItemUpdateRequest, ItemWithExtraCreateRequest, ItemWithExtraUpdateRequest,
+  ItemGroupUpdateRequest,
+  ItemUpdateRequest,
+  ItemWithExtraCreateRequest,
+  ItemWithExtraUpdateRequest,
 } from '../api/rest/v1/controllers/ItemOps/ItemOps.type';
 import Influencer from '../db/entities/influencerRelated/Influencer';
 import Item from '../db/entities/itemRelated/Item';
@@ -257,13 +260,6 @@ export class ItemOpsService {
       );
     }
 
-    if (!(await this.isItemGroupNameUniqueToInfluencer(body.itemGroupName, influencer))) {
-      throw new CustomError(
-        'The Item Group Name Is Not Unique To The Influencer',
-        HttpStatus.CONFLICT,
-      );
-    }
-
     const itemGroup = await this.dataSource.getRepository(ItemGroup).findOne({
       where: { id: body.itemGroupId },
       relations: {
@@ -276,7 +272,17 @@ export class ItemOpsService {
     }
 
     if (
-      !arrayEquals(body.extraFeatures, (Object.keys(itemGroup.extraFeatures))) &&
+      !(await this.isItemGroupNameUniqueToInfluencer(body.itemGroupName, influencer)) &&
+      body.itemGroupName !== itemGroup.itemGroupName
+    ) {
+      throw new CustomError(
+        'The Item Group Name Is Not Unique To The Influencer',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (
+      !arrayEquals(body.extraFeatures, Object.keys(itemGroup.extraFeatures)) &&
       (itemGroup.items as [])?.length > 0
     ) {
       throw new CustomError(
@@ -366,10 +372,7 @@ export class ItemOpsService {
     }
 
     if ((itemGroup.items as [])?.length > 0) {
-      throw new CustomError(
-        'The Item Group Has Items, It Cannot Be Deleted',
-        HttpStatus.CONFLICT,
-      );
+      throw new CustomError('The Item Group Has Items, It Cannot Be Deleted', HttpStatus.CONFLICT);
     }
 
     await this.itemService.deleteItemGroup(influencer, itemGroup);
@@ -386,6 +389,10 @@ export class ItemOpsService {
           items: true,
         },
         items: true,
+        pinnedItem: true,
+        categories: {
+          items: true,
+        },
       },
     });
 
@@ -423,11 +430,17 @@ export class ItemOpsService {
     await this.itemService.deleteItemWithExtra(influencer, item);
   };
 
-  itemDelete = async (
-    itemId: string,
-    decodedToken: RefreshTokenRequest,
-  ): Promise<void> => {
-    const influencer = await this.isInfluencer(decodedToken.id, false, true);
+  itemDelete = async (itemId: string, decodedToken: RefreshTokenRequest): Promise<void> => {
+    const influencer = await this.dataSource.getRepository(Influencer).findOne({
+      where: { id: decodedToken.id },
+      relations: {
+        items: true,
+        pinnedItem: true,
+        categories: {
+          items: true,
+        },
+      },
+    });
 
     if (!influencer) {
       throw new CustomError(

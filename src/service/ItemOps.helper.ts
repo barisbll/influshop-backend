@@ -19,6 +19,7 @@ export const itemsMapper = (
         averageStars: item.averageStars,
         commentsLength: item.comments?.length,
         isPinned: pinnedItemId === item.id,
+        updatedAt: item.itemGroup.updatedAt,
       };
     }
 
@@ -32,6 +33,7 @@ export const itemsMapper = (
       averageStars: item.averageStars,
       commentsLength: item.comments?.length,
       isPinned: pinnedItemId === item.id,
+      updatedAt: item.updated_at,
     };
   });
 
