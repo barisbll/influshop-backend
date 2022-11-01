@@ -303,6 +303,10 @@ export class ItemService {
       await this.dataSource.getRepository(ItemGroup).save(updatedItemGroup);
     }
 
+    if (influencer?.pinnedItem?.id === item.id) {
+      influencer.pinnedItem = undefined;
+    }
+
     const defaultCategory = influencer.categories?.find((category) => category.name === 'default');
     if (defaultCategory) {
       defaultCategory.items = defaultCategory.items?.filter(
@@ -325,6 +329,10 @@ export class ItemService {
         (defaultCategoryItem) => defaultCategoryItem.id !== item.id,
       );
       await this.dataSource.getRepository(Category).save(defaultCategory);
+    }
+
+    if (influencer?.pinnedItem?.id === item.id) {
+      influencer.pinnedItem = undefined;
     }
 
     await this.dataSource.getRepository(Influencer).save(influencer);
