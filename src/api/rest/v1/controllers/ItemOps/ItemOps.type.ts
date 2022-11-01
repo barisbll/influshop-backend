@@ -1,6 +1,12 @@
 export type ItemGroupCreateRequest = {
   itemGroupName: string;
   extraFeatures: string[];
+  itemGroupImage?: string;
+};
+
+type ImageWithOrder = {
+  image: string;
+  order: number;
 };
 
 export type ItemWithExtraCreateRequest = {
@@ -11,6 +17,7 @@ export type ItemWithExtraCreateRequest = {
   extraFeatures: {};
   itemGroupName: string;
   isPinned: boolean;
+  itemImages?: ImageWithOrder[];
 };
 
 export type ItemCreateRequest = {
@@ -19,12 +26,14 @@ export type ItemCreateRequest = {
   itemPrice: number;
   itemQuantity: number;
   isPinned: boolean;
+  itemImages?: ImageWithOrder[];
 };
 
 export type ItemGroupUpdateRequest = {
   itemGroupName: string;
   extraFeatures: string[];
   itemGroupId: string;
+  itemGroupImage?: string;
 };
 
 export type ItemWithExtraUpdateRequest = {
@@ -36,6 +45,7 @@ export type ItemWithExtraUpdateRequest = {
   extraFeatures: {};
   itemGroupName: string;
   isPinned: boolean;
+  itemImages?: ImageWithOrder[];
 };
 
 export type ItemUpdateRequest = {
@@ -45,4 +55,5 @@ export type ItemUpdateRequest = {
   itemPrice: number;
   itemQuantity: number;
   isPinned: boolean;
+  itemImages?: ImageWithOrder[];
 };

@@ -72,7 +72,9 @@ export class ItemOpsService {
       throw new CustomError('Item Group Does Not Exist', HttpStatus.NOT_FOUND);
     }
 
-    return itemGroup;
+    const { itemGroupName, extraFeatures, imageLocation, isVisible } = itemGroup;
+
+    return { itemGroupName, extraFeatures, imageLocation, isVisible };
   };
 
   itemsGet = async (influencerName: string): Promise<MappedObject[]> => {
@@ -111,6 +113,11 @@ export class ItemOpsService {
 
     const { id, itemName, itemPrice, itemQuantity, averageStars, comments, images } = item;
 
+    const mappedImages = images?.map((image) => {
+      const { imageLocation, imageOrder } = image;
+      return { imageLocation, imageOrder };
+    });
+
     return {
       id: id as string,
       name: itemName as string,
@@ -118,7 +125,7 @@ export class ItemOpsService {
       available: (itemQuantity || 1) > 0,
       averageStars,
       comments,
-      images,
+      images: mappedImages,
     };
   };
 
@@ -163,6 +170,11 @@ export class ItemOpsService {
     const { id, itemName, itemPrice, itemQuantity, averageStars, comments, images, extraFeatures } =
       result;
 
+    const mappedImages = images?.map((image) => {
+      const { imageLocation, imageOrder } = image;
+      return { imageLocation, imageOrder };
+    });
+
     return {
       id: id as string,
       name: itemName as string,
@@ -170,7 +182,7 @@ export class ItemOpsService {
       available: (itemQuantity || 1) > 0,
       averageStars,
       comments,
-      images,
+      images: mappedImages,
       extraFeatures,
     };
   };

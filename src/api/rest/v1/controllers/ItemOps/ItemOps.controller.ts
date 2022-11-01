@@ -92,7 +92,7 @@ export class ItemOpsController {
     };
     const queryParams = req.query as { isExtra: string };
 
-    if (Object.keys(queryParams).length < 1 || Object.keys(queryParams).length > 6) {
+    if (Object.keys(queryParams).length < 1 || Object.keys(queryParams).length > 5) {
       next(
         new CustomError(
           'Extra Features Query Parameters Length Must Be Between 1 and 5',
@@ -170,8 +170,6 @@ export class ItemOpsController {
     }
   };
 
-  // TODO: Add check for extraFeatures of new item,
-  // it shouldn't be different than its old itemGroup's extra features
   itemUpdateWithExtra = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     req.body as ItemWithExtraUpdateRequest;
     const decodedToken = req.decodedToken as RefreshTokenRequest;
