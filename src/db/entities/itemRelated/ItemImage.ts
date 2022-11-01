@@ -1,5 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
-import { Min, Max } from 'class-validator';
+import { Max, Min } from 'class-validator';
+import {
+  Column, CreateDateColumn, Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn, UpdateDateColumn,
+} from 'typeorm';
 import Item from './Item';
 
 @Entity('item_image')
@@ -10,8 +14,11 @@ export default class ItemImage {
   @Column()
   imageLocation?: string;
 
-  @DeleteDateColumn()
-  deletedAt?: Date;
+  @CreateDateColumn()
+  createdAt?: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
 
   @Column()
   @Min(1)

@@ -10,6 +10,7 @@ export const itemGroupUpdateValidator = async (itemGroupUpdateRequest: ItemGroup
     itemGroupName: yup.string().min(4).max(20).required(),
     extraFeatures: yup.array().of(yup.string()).min(1).max(5)
 .required(),
+    itemGroupImage: yup.string().optional(),
   });
 
   try {

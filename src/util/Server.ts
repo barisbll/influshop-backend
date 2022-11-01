@@ -14,7 +14,7 @@ export class Server {
       const app = express();
       Server.app = app;
       try {
-        Server.app.use(express.json());
+        Server.app.use(express.json({ limit: '50mb' }));
         Server.app.use(cors());
         Server.app.use(compression());
         Server.app.use(morganMiddleware);

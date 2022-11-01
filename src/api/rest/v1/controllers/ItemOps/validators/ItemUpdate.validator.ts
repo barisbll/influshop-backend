@@ -7,6 +7,11 @@ import { ItemUpdateRequest } from '../ItemOps.type';
 export const itemUpdateValidator = async (
     itemUpdateRequest: ItemUpdateRequest,
 ) => {
+  const itemImageScheme = yup.object().shape({
+    image: yup.string().required(),
+    order: yup.number().min(1).max(10).required(),
+  });
+
   const schema = yup.object().shape({
     itemId: yup.string().uuid().required(),
     itemName: yup.string().min(4).max(20).required(),
@@ -14,6 +19,7 @@ export const itemUpdateValidator = async (
     itemPrice: yup.number().min(1).max(50000).required(),
     itemQuantity: yup.number().min(1).max(50000).required(),
     isPinned: yup.boolean().required(),
+    itemImages: yup.array().of(itemImageScheme).optional(),
   });
 
   try {

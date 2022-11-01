@@ -13,7 +13,9 @@ import Category from '../db/entities/influencerRelated/Category';
 import Influencer from '../db/entities/influencerRelated/Influencer';
 import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
+import ItemImage from '../db/entities/itemRelated/ItemImage';
 import { CustomError } from '../util/CustomError';
+import { ImageUploader } from './Image.service';
 import { itemSoftDeleteOperations } from './Item.helper';
 import { arrayEquals, updateItemGroupExtraFeaturesOnItemDelete } from './ItemOps.helper';
 
@@ -21,7 +23,8 @@ import { arrayEquals, updateItemGroupExtraFeaturesOnItemDelete } from './ItemOps
 export class ItemService {
   private dataSource: DataSource;
 
-  constructor() {
+  // eslint-disable-next-line no-unused-vars
+  constructor(private readonly imageUploader: ImageUploader) {
     this.dataSource = Container.get('dataSource');
   }
 
@@ -30,6 +33,11 @@ export class ItemService {
     itemGroup.itemGroupName = body.itemGroupName;
     itemGroup.influencer = influencer;
     itemGroup.extraFeatures = body.extraFeatures.reduce((a, v) => ({ ...a, [v]: [] }), {});
+
+    if (body.itemGroupImage) {
+      const publicId = await this.imageUploader.uploadImage(body.itemGroupImage, 'influshop_items');
+      itemGroup.imageLocation = publicId;
+    }
 
     await this.dataSource.getRepository(ItemGroup).save(itemGroup);
 
@@ -94,6 +102,23 @@ export class ItemService {
     }
     item.influencer = influencer;
 
+    if (body.itemImages) {
+      const orders = body.itemImages.map((imageObj) => imageObj.order);
+      if (orders.length !== new Set(orders).size) {
+        throw new CustomError('Item Images Order Must Be Unique');
+      }
+
+      body.itemImages.forEach(async (image) => {
+        const publicId = await this.imageUploader.uploadImage(image.image, 'influshop_items');
+        const itemImage = new ItemImage();
+        itemImage.imageLocation = publicId;
+        itemImage.imageOrder = image.order;
+        itemImage.item = item;
+        await this.dataSource.getRepository(ItemImage).save(itemImage);
+        item.images = [...(item.images || []), itemImage];
+      });
+    }
+
     await this.dataSource.getRepository(Item).save(item);
 
     influencer.items = [...(influencer.items || []), item];
@@ -126,6 +151,23 @@ export class ItemService {
     }
     item.influencer = influencer;
 
+    if (body.itemImages) {
+      const orders = body.itemImages.map((imageObj) => imageObj.order);
+      if (orders.length !== new Set(orders).size) {
+        throw new CustomError('Item Images Order Must Be Unique');
+      }
+
+      body.itemImages.forEach(async (image) => {
+        const publicId = await this.imageUploader.uploadImage(image.image, 'influshop_items');
+        const itemImage = new ItemImage();
+        itemImage.imageLocation = publicId;
+        itemImage.imageOrder = image.order;
+        itemImage.item = item;
+        await this.dataSource.getRepository(ItemImage).save(itemImage);
+        item.images = [...(item.images || []), itemImage];
+      });
+    }
+
     await this.dataSource.getRepository(Item).save(item);
 
     influencer.items = [...(influencer.items || []), item];
@@ -148,12 +190,34 @@ export class ItemService {
       newExtraFeatures[extraFeature] = [];
     });
 
-    await this.dataSource
-      .createQueryBuilder()
-      .update(ItemGroup)
-      .set({ itemGroupName: body.itemGroupName, extraFeatures: newExtraFeatures })
-      .where({ id: itemGroup.id })
-      .execute();
+    const updatedFeatures: Partial<ItemGroup> = {
+      itemGroupName: body.itemGroupName,
+      extraFeatures: newExtraFeatures,
+    };
+
+    if (body.itemGroupImage) {
+      let publicId: string;
+      if (itemGroup.imageLocation) {
+        // here I stayed in the update of itemGroup
+        await this.imageUploader.deleteImage(itemGroup.imageLocation);
+        publicId = await this.imageUploader.updateImage(
+          body.itemGroupImage,
+          'influshop_items',
+          itemGroup.imageLocation,
+        );
+      } else {
+        publicId = await this.imageUploader.uploadImage(body.itemGroupImage, 'influshop_items');
+
+        updatedFeatures.imageLocation = publicId;
+      }
+
+      await this.dataSource
+        .createQueryBuilder()
+        .update(ItemGroup)
+        .set(updatedFeatures)
+        .where({ id: itemGroup.id })
+        .execute();
+    }
   };
 
   updateItemWithExtra = async (body: ItemWithExtraUpdateRequest, item: Item) => {

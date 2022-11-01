@@ -77,6 +77,38 @@ const tempConfig = convict({
       format: Boolean,
     },
   },
+  cloudinary: {
+    cloudName: {
+      format: nonEmptyString('CLOUDINARY_CLOUD_NAME'),
+      default: '',
+      env: 'CLOUDINARY_CLOUD_NAME',
+    },
+    apiKey: {
+      format: nonEmptyString('CLOUDINARY_API_KEY'),
+      default: '',
+      env: 'CLOUDINARY_API_KEY',
+    },
+    apiSecret: {
+      format: nonEmptyString('CLOUDINARY_API_SECRET'),
+      default: '',
+      env: 'CLOUDINARY_API_SECRET',
+    },
+    itemImagesPreset: {
+      format: nonEmptyString('CLOUDINARY_ITEM_IMAGES_PRESET'),
+      default: 'influshop_items',
+      env: 'CLOUDINARY_ITEM_IMAGES_PRESET',
+    },
+    commentImagesPreset: {
+      format: nonEmptyString('CLOUDINARY_COMMENT_IMAGES_PRESET'),
+      default: 'influshop_comments',
+      env: 'CLOUDINARY_COMMENT_IMAGES_PRESET',
+    },
+    profileImagesPreset: {
+      format: nonEmptyString('CLOUDINARY_PROFILE_IMAGES_PRESET'),
+      default: 'influshop_profile_images',
+      env: 'CLOUDINARY_PROFILE_IMAGES_PRESET',
+    },
+  },
 });
 
 // Perform validation
