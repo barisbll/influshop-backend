@@ -476,6 +476,8 @@ export class ItemService {
 
     await this.dataSource.getRepository(Influencer).save(influencer);
 
+    this.imageUploader.deleteImage(itemGroup.imageLocation as string);
+
     await this.dataSource
       .getRepository(ItemGroup)
       .createQueryBuilder()
@@ -485,7 +487,6 @@ export class ItemService {
       .execute();
   };
 
-  // solve the itemGroup issue and also make the update modular (maybe after delete)
   deleteItemWithExtra = async (oldInfluencer: Influencer, item: Item) => {
     const influencer = clone(oldInfluencer);
 
@@ -515,6 +516,17 @@ export class ItemService {
 
     await this.dataSource.getRepository(Influencer).save(influencer);
 
+    item.images?.forEach(async (itemImage) => {
+      await this.imageUploader.deleteImage(itemImage.imageLocation as string);
+      await this.dataSource
+      .getRepository(ItemImage)
+      .createQueryBuilder()
+      .delete()
+      .from(ItemImage)
+      .where('id = :id', { id: itemImage.id })
+      .execute();
+    });
+
     await itemSoftDeleteOperations(item, this.dataSource);
   };
 
@@ -534,6 +546,17 @@ export class ItemService {
     }
 
     await this.dataSource.getRepository(Influencer).save(influencer);
+
+    item.images?.forEach(async (itemImage) => {
+      await this.imageUploader.deleteImage(itemImage.imageLocation as string);
+      await this.dataSource
+      .getRepository(ItemImage)
+      .createQueryBuilder()
+      .delete()
+      .from(ItemImage)
+      .where('id = :id', { id: itemImage.id })
+      .execute();
+    });
 
     await itemSoftDeleteOperations(item, this.dataSource);
   };
