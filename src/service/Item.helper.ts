@@ -4,24 +4,12 @@ import CommentImage from '../db/entities/itemRelated/CommentImage';
 import CommentLike from '../db/entities/itemRelated/CommentLike';
 import CommentReport from '../db/entities/itemRelated/CommentReport';
 import Item from '../db/entities/itemRelated/Item';
-import ItemImage from '../db/entities/itemRelated/ItemImage';
 import ItemReport from '../db/entities/itemRelated/ItemReport';
 import ItemStar from '../db/entities/itemRelated/ItemStar';
 import Cart from '../db/entities/userRelated/Cart';
 import CartItem from '../db/entities/userRelated/CartItem';
 
 export const itemSoftDeleteOperations = async (item: Item, dataSource: DataSource) => {
-  // delete item images
-  item.images?.forEach(async (image) => {
-    await dataSource
-      .getRepository(ItemImage)
-      .createQueryBuilder()
-      .softDelete()
-      .from(ItemImage)
-      .where('id = :id', { id: image.id })
-      .execute();
-  });
-
   // delete comments
   item.comments?.forEach(async (comment) => {
     comment.commentImages?.forEach(async (commentImage) => {

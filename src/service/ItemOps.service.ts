@@ -56,8 +56,8 @@ export class ItemOpsService {
     }
 
     return influencer.itemGroups?.map((itemGroup) => {
-      const { itemGroupName, extraFeatures, id } = itemGroup;
-      return { itemGroupName, extraFeatures, id };
+      const { itemGroupName, extraFeatures, id, imageLocation } = itemGroup;
+      return { itemGroupName, extraFeatures, id, imageLocation };
     });
   };
 
