@@ -6,9 +6,7 @@ import { RefreshTokenRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
 import {
   ItemCreateRequest,
   ItemGroupCreateRequest,
-  ItemGroupUpdateRequest,
-  ItemUpdateRequest,
-  ItemWithExtraCreateRequest,
+  ItemGroupUpdateRequest, ItemWithExtraCreateRequest,
   ItemWithExtraUpdateRequest,
 } from '../api/rest/v1/controllers/ItemOps/ItemOps.type';
 import Influencer from '../db/entities/influencerRelated/Influencer';
@@ -304,6 +302,8 @@ export class ItemOpsService {
     }
 
     if (
+
+      body.itemGroupName &&
       !(await this.isItemGroupNameUniqueToInfluencer(body.itemGroupName, influencer)) &&
       body.itemGroupName !== itemGroup.itemGroupName
     ) {
@@ -314,6 +314,7 @@ export class ItemOpsService {
     }
 
     if (
+      body.extraFeatures &&
       !arrayEquals(body.extraFeatures, Object.keys(itemGroup.extraFeatures)) &&
       (itemGroup.items as [])?.length > 0
     ) {
@@ -345,6 +346,7 @@ export class ItemOpsService {
         itemGroup: {
           items: true,
         },
+        images: true,
       },
     });
 
@@ -356,7 +358,7 @@ export class ItemOpsService {
   };
 
   itemUpdate = async (
-    body: ItemUpdateRequest,
+    body: Omit<ItemWithExtraUpdateRequest, 'extraFeatures'>,
     decodedToken: RefreshTokenRequest,
   ): Promise<void> => {
     const influencer = await this.isInfluencer(decodedToken.id, false, false);
@@ -370,6 +372,9 @@ export class ItemOpsService {
 
     const item = await this.dataSource.getRepository(Item).findOne({
       where: { id: body.itemId },
+      relations: {
+        images: true,
+      },
     });
 
     if (!item) {

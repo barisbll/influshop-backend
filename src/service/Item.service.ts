@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 import {
   ItemCreateRequest,
   ItemGroupCreateRequest,
-  ItemUpdateRequest,
+  ItemGroupUpdateRequest,
   ItemWithExtraCreateRequest,
   ItemWithExtraUpdateRequest,
 } from '../api/rest/v1/controllers/ItemOps/ItemOps.type';
@@ -184,21 +184,24 @@ export class ItemService {
     await this.dataSource.getRepository(Influencer).save(influencer);
   };
 
-  updateItemGroup = async (body: ItemGroupCreateRequest, itemGroup: ItemGroup) => {
+  updateItemGroup = async (body: ItemGroupUpdateRequest, itemGroup: ItemGroup) => {
     const newExtraFeatures: Record<string, string[]> = {};
-    body.extraFeatures.forEach((extraFeature) => {
+    body.extraFeatures?.forEach((extraFeature) => {
       newExtraFeatures[extraFeature] = [];
     });
 
-    const updatedFeatures: Partial<ItemGroup> = {
-      itemGroupName: body.itemGroupName,
-      extraFeatures: newExtraFeatures,
-    };
+    const updatedFeatures: Partial<ItemGroup> = {};
 
+    if (body.itemGroupName) {
+      updatedFeatures.itemGroupName = body.itemGroupName;
+    }
+
+    if (body.extraFeatures) {
+      updatedFeatures.extraFeatures = newExtraFeatures;
+    }
     if (body.itemGroupImage) {
       let publicId: string;
       if (itemGroup.imageLocation) {
-        // here I stayed in the update of itemGroup
         await this.imageUploader.deleteImage(itemGroup.imageLocation);
         publicId = await this.imageUploader.updateImage(
           body.itemGroupImage,
@@ -210,19 +213,19 @@ export class ItemService {
 
         updatedFeatures.imageLocation = publicId;
       }
-
-      await this.dataSource
-        .createQueryBuilder()
-        .update(ItemGroup)
-        .set(updatedFeatures)
-        .where({ id: itemGroup.id })
-        .execute();
     }
+
+    await this.dataSource
+      .createQueryBuilder()
+      .update(ItemGroup)
+      .set(updatedFeatures)
+      .where({ id: itemGroup.id })
+      .execute();
   };
 
   updateItemWithExtra = async (body: ItemWithExtraUpdateRequest, item: Item) => {
     let newItemGroup: ItemGroup | null = item.itemGroup as ItemGroup;
-    if (body.itemGroupName !== item.itemGroup?.itemGroupName) {
+    if (body.itemGroupName && body.itemGroupName !== item.itemGroup?.itemGroupName) {
       newItemGroup = await this.dataSource.getRepository(ItemGroup).findOne({
         where: { itemGroupName: body.itemGroupName, influencer: { id: item.influencer?.id } },
         relations: ['items'],
@@ -238,97 +241,228 @@ export class ItemService {
         );
       }
 
-      const itemFeatureCounter = new Map<string, number>();
-      Object.keys(item.extraFeatures).forEach((key) => {
-        itemFeatureCounter.set(key, 0);
-      });
-
-      for (let i = 0; i < (item.itemGroup?.items?.length as number); i += 1) {
-        const itemInGroup = item.itemGroup?.items?.[i] as Item;
-
-        let isAllFeaturesIncluded = true;
-        itemFeatureCounter.forEach((value, key) => {
-          if (itemInGroup.extraFeatures[key] === item.extraFeatures[key]) {
-            itemFeatureCounter.set(key, value + 1);
-
-            isAllFeaturesIncluded =
-              (itemFeatureCounter.get(key) as number) > 1 && isAllFeaturesIncluded && i !== 0;
-          }
+      if (body.extraFeatures) {
+        const itemFeatureCounter = new Map<string, number>();
+        Object.keys(item.extraFeatures).forEach((key) => {
+          itemFeatureCounter.set(key, 0);
         });
-        // if (isAllFeaturesIncluded) {
-        //   break;
-        // }
 
-        if (i === (item.itemGroup?.items?.length as number) - 1) {
+        for (let i = 0; i < (item.itemGroup?.items?.length as number); i += 1) {
+          const itemInGroup = item.itemGroup?.items?.[i] as Item;
+
+          let isAllFeaturesIncluded = true;
           itemFeatureCounter.forEach((value, key) => {
-            if (value === 1) {
-              const itemGroupExtraFeatures: string[] = (item.itemGroup as ItemGroup).extraFeatures[
-                key
-              ];
+            if (itemInGroup.extraFeatures[key] === item.extraFeatures[key]) {
+              itemFeatureCounter.set(key, value + 1);
 
-              const filteredExtraFeatures = itemGroupExtraFeatures.filter(
-                (extraFeature) => extraFeature !== item.extraFeatures[key],
-              );
-              // eslint-disable-next-line no-param-reassign
-              (item.itemGroup as ItemGroup).extraFeatures[key] = filteredExtraFeatures;
+              isAllFeaturesIncluded =
+                (itemFeatureCounter.get(key) as number) > 1 && isAllFeaturesIncluded && i !== 0;
             }
           });
+          // if (isAllFeaturesIncluded) {
+          //   break;
+          // }
+
+          if (i === (item.itemGroup?.items?.length as number) - 1) {
+            itemFeatureCounter.forEach((value, key) => {
+              if (value === 1) {
+                const itemGroupExtraFeatures: string[] = (item.itemGroup as ItemGroup)
+                  .extraFeatures[key];
+
+                const filteredExtraFeatures = itemGroupExtraFeatures.filter(
+                  (extraFeature) => extraFeature !== item.extraFeatures[key],
+                );
+                // eslint-disable-next-line no-param-reassign
+                (item.itemGroup as ItemGroup).extraFeatures[key] = filteredExtraFeatures;
+              }
+            });
+          }
         }
       }
+      if (body.itemGroupName !== item.itemGroup?.itemGroupName) {
+        // update old item group
+        await this.dataSource
+          .createQueryBuilder()
+          .update(ItemGroup)
+          .set({
+            extraFeatures: item.itemGroup?.extraFeatures,
+          })
+          .where({ id: item.itemGroup?.id })
+          .execute();
+
+        Object.keys(newItemGroup.extraFeatures).forEach((key) => {
+          if (!(newItemGroup as ItemGroup).extraFeatures[key].includes(item.extraFeatures[key])) {
+            (newItemGroup as ItemGroup).extraFeatures[key].push(item.extraFeatures[key]);
+          }
+        });
+
+        // update new item group
+        await this.dataSource
+          .createQueryBuilder()
+          .update(ItemGroup)
+          .set({
+            extraFeatures: newItemGroup.extraFeatures,
+          })
+          .where({ id: newItemGroup.id })
+          .execute();
+      }
     }
-    if (body.itemGroupName !== item.itemGroup?.itemGroupName) {
-      // update old item group
-      await this.dataSource
-        .createQueryBuilder()
-        .update(ItemGroup)
-        .set({
-          extraFeatures: item.itemGroup?.extraFeatures,
-        })
-        .where({ id: item.itemGroup?.id })
-        .execute();
 
-      Object.keys(newItemGroup.extraFeatures).forEach((key) => {
-        if (!(newItemGroup as ItemGroup).extraFeatures[key].includes(item.extraFeatures[key])) {
-          (newItemGroup as ItemGroup).extraFeatures[key].push(item.extraFeatures[key]);
+    const updatedFeatures: Partial<Item> = {};
+
+    if (body.itemName) {
+      updatedFeatures.itemName = body.itemName;
+    }
+
+    if (body.itemPrice) {
+      updatedFeatures.itemPrice = body.itemPrice;
+    }
+
+    if (body.itemQuantity) {
+      updatedFeatures.itemQuantity = body.itemQuantity;
+    }
+
+    if (body.itemDescription) {
+      updatedFeatures.itemDescription = body.itemDescription;
+    }
+
+    if (body.extraFeatures) {
+      updatedFeatures.extraFeatures = body.extraFeatures;
+    }
+
+    if (body.itemGroupName) {
+      updatedFeatures.itemGroup = newItemGroup;
+    }
+
+    if (body.itemImages) {
+      const oldItemImages = item.images;
+
+      const itemImages: ItemImage[] = [];
+      body.itemImages.forEach(async (bodyImage) => {
+        if (bodyImage.isNew) {
+          const publicId = await this.imageUploader.uploadImage(bodyImage.image, 'influshop_items');
+          const itemImage = new ItemImage();
+          itemImage.imageLocation = publicId;
+          itemImage.imageOrder = bodyImage.order;
+          itemImage.item = item;
+          const newItemImage = await this.dataSource.getRepository(ItemImage).save(itemImage);
+          itemImages.push(newItemImage);
+        } else {
+          const itemImage = await this.dataSource.getRepository(ItemImage).findOne({
+            where: { imageLocation: bodyImage.image },
+          });
+          if (!itemImage) {
+            throw new CustomError('Image Not Found', HttpStatus.NOT_FOUND);
+          }
+          if (itemImage.imageOrder === bodyImage.order) {
+            itemImages.push(itemImage);
+          } else {
+            await this.dataSource
+              .createQueryBuilder()
+              .update(ItemImage)
+              .set({
+                imageOrder: bodyImage.order,
+              })
+              .where({ id: itemImage.id })
+              .execute();
+            itemImage.imageOrder = bodyImage.order;
+            itemImages.push(itemImage);
+          }
         }
-      });
 
-      // update new item group
-      await this.dataSource
-        .createQueryBuilder()
-        .update(ItemGroup)
-        .set({
-          extraFeatures: newItemGroup.extraFeatures,
-        })
-        .where({ id: newItemGroup.id })
-        .execute();
+        oldItemImages?.forEach(async (oldItemImage) => {
+          if (
+            !itemImages.find(
+              (newItemImage) => newItemImage.imageLocation === oldItemImage.imageLocation,
+            )
+          ) {
+            await this.imageUploader.deleteImage(oldItemImage.imageLocation as string);
+            await this.dataSource.getRepository(ItemImage).delete({ id: oldItemImage.id });
+          }
+        });
+      });
     }
 
     await this.dataSource
       .createQueryBuilder()
       .update(Item)
-      .set({
-        itemName: body.itemName,
-        itemPrice: body.itemPrice,
-        itemQuantity: body.itemQuantity,
-        itemDescription: body.itemDescription,
-        extraFeatures: body.extraFeatures,
-        itemGroup: newItemGroup,
-      })
+      .set(updatedFeatures)
       .where({ id: item.id })
       .execute();
   };
 
-  updateItem = async (body: ItemUpdateRequest, item: Item) => {
+  updateItem = async (body: Omit<ItemWithExtraUpdateRequest, 'extraFeatures'>, item: Item) => {
+    const updatedFeatures: Partial<Item> = {};
+
+    if (body.itemName) {
+      updatedFeatures.itemName = body.itemName;
+    }
+
+    if (body.itemPrice) {
+      updatedFeatures.itemPrice = body.itemPrice;
+    }
+
+    if (body.itemQuantity) {
+      updatedFeatures.itemQuantity = body.itemQuantity;
+    }
+
+    if (body.itemDescription) {
+      updatedFeatures.itemDescription = body.itemDescription;
+    }
+
+    if (body.itemImages) {
+      const oldItemImages = item.images;
+
+      const itemImages: ItemImage[] = [];
+      body.itemImages.forEach(async (bodyImage) => {
+        if (bodyImage.isNew) {
+          const publicId = await this.imageUploader.uploadImage(bodyImage.image, 'influshop_items');
+          const itemImage = new ItemImage();
+          itemImage.imageLocation = publicId;
+          itemImage.imageOrder = bodyImage.order;
+          itemImage.item = item;
+          const newItemImage = await this.dataSource.getRepository(ItemImage).save(itemImage);
+          itemImages.push(newItemImage);
+        } else {
+          const itemImage = await this.dataSource.getRepository(ItemImage).findOne({
+            where: { imageLocation: bodyImage.image },
+          });
+          if (!itemImage) {
+            throw new CustomError('Image Not Found', HttpStatus.NOT_FOUND);
+          }
+          if (itemImage.imageOrder === bodyImage.order) {
+            itemImages.push(itemImage);
+          } else {
+            await this.dataSource
+              .createQueryBuilder()
+              .update(ItemImage)
+              .set({
+                imageOrder: bodyImage.order,
+              })
+              .where({ id: itemImage.id })
+              .execute();
+            itemImage.imageOrder = bodyImage.order;
+            itemImages.push(itemImage);
+          }
+        }
+
+        oldItemImages?.forEach(async (oldItemImage) => {
+          if (
+            !itemImages.find(
+              (newItemImage) => newItemImage.imageLocation === oldItemImage.imageLocation,
+            )
+          ) {
+            await this.imageUploader.deleteImage(oldItemImage.imageLocation as string);
+            await this.dataSource.getRepository(ItemImage).delete({ id: oldItemImage.id });
+          }
+        });
+      });
+    }
+
     await this.dataSource
       .createQueryBuilder()
       .update(Item)
-      .set({
-        itemName: body.itemName,
-        itemPrice: body.itemPrice,
-        itemQuantity: body.itemQuantity,
-        itemDescription: body.itemDescription,
-      })
+      .set(updatedFeatures)
       .where({ id: item.id })
       .execute();
   };
