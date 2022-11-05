@@ -15,7 +15,7 @@ export class UserService {
     this.dataSource = Container.get('dataSource');
   }
 
-  createUser = async (req: SignupRequest) => {
+  createUser = async (req: SignupRequest): Promise<string> => {
     const user = new User();
     user.password = await hash(req.password, 12);
     user.username = req.username;
@@ -33,8 +33,10 @@ export class UserService {
     user.cart = cart;
     user.favorite = favorite;
 
-    await this.dataSource.manager.save(user);
+    const savedUser = await this.dataSource.manager.save(user);
     await this.dataSource.manager.save(cart);
     await this.dataSource.manager.save(favorite);
+
+    return savedUser.username as string;
 };
 }

@@ -111,7 +111,16 @@ export class ItemOpsService {
       throw new CustomError('The Item Does Not Exist', HttpStatus.NOT_FOUND);
     }
 
-    const { id, itemName, itemPrice, itemQuantity, averageStars, comments, images } = item;
+    const {
+      id,
+      itemName,
+      itemPrice,
+      itemQuantity,
+      averageStars,
+      comments,
+      images,
+      itemDescription,
+    } = item;
 
     const mappedImages = images?.map((image) => {
       const { imageLocation, imageOrder } = image;
@@ -121,6 +130,7 @@ export class ItemOpsService {
     return {
       id: id as string,
       name: itemName as string,
+      description: itemDescription as string,
       price: itemPrice as number,
       available: (itemQuantity || 1) > 0,
       averageStars,
@@ -167,8 +177,17 @@ export class ItemOpsService {
       throw new CustomError('The Item With Given Params Does Not Exist', HttpStatus.NOT_FOUND);
     }
 
-    const { id, itemName, itemPrice, itemQuantity, averageStars, comments, images, extraFeatures } =
-      result;
+    const {
+      id,
+      itemName,
+      itemPrice,
+      itemQuantity,
+      averageStars,
+      comments,
+      images,
+      extraFeatures,
+      itemDescription,
+    } = result;
 
     const mappedImages = images?.map((image) => {
       const { imageLocation, imageOrder } = image;
@@ -178,6 +197,7 @@ export class ItemOpsService {
     return {
       id: id as string,
       name: itemName as string,
+      description: itemDescription as string,
       price: itemPrice as number,
       available: (itemQuantity || 1) > 0,
       averageStars,

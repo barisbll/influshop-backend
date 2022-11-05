@@ -17,8 +17,8 @@ export class AuthController {
     req.body as SignupRequest;
     try {
       const validatedBody = await signupValidator(req.body);
-      await this.authService.userSignup(validatedBody);
-      res.json({ message: 'User Successfully Created' }).status(HttpStatus.CREATED);
+      const username = await this.authService.userSignup(validatedBody);
+      res.json({ message: 'User Successfully Created', username }).status(HttpStatus.CREATED);
     } catch (err) {
       next(err);
     }
@@ -53,8 +53,8 @@ export class AuthController {
     req.body as SignupRequest;
     try {
       const validatedBody = await signupValidator(req.body);
-      await this.authService.influencerSignup(validatedBody);
-      res.json({ message: 'Influencer Successfully Created' }).status(HttpStatus.CREATED);
+      const username = await this.authService.influencerSignup(validatedBody);
+      res.json({ message: 'Influencer Successfully Created', username }).status(HttpStatus.CREATED);
     } catch (err) {
       next(err);
     }

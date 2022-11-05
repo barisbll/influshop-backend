@@ -58,7 +58,7 @@ export class AuthService {
     return true;
   };
 
-  userSignup = async (body: SignupRequest): Promise<void> => {
+  userSignup = async (body: SignupRequest): Promise<string> => {
     const isEmailUnique = await this.isEmailUnique(body.email);
     if (!isEmailUnique) {
       throw new CustomError('Email already exists', HttpStatus.CONFLICT, {
@@ -73,7 +73,8 @@ export class AuthService {
       });
     }
     try {
-      await this.userService.createUser(body);
+      const savedUsername = await this.userService.createUser(body);
+      return savedUsername;
     } catch (err) {
       throw new CustomError('Error creating user', HttpStatus.INTERNAL_SERVER_ERROR, {
         err,
@@ -131,7 +132,7 @@ export class AuthService {
     };
   };
 
-  influencerSignup = async (body: SignupRequest): Promise<void> => {
+  influencerSignup = async (body: SignupRequest): Promise<string> => {
     const isEmailUnique = await this.isEmailUnique(body.email);
     if (!isEmailUnique) {
       throw new CustomError('Email already exists', HttpStatus.CONFLICT, {
@@ -146,7 +147,8 @@ export class AuthService {
       });
     }
     try {
-      await this.influencerService.createInfluencer(body);
+      const username = await this.influencerService.createInfluencer(body);
+      return username;
     } catch (err) {
       throw new CustomError('Error creating influencer', HttpStatus.INTERNAL_SERVER_ERROR, {
         err,

@@ -14,7 +14,7 @@ export class InfluencerService {
     this.dataSource = Container.get('dataSource');
   }
 
-  createInfluencer = async (req: SignupRequest) => {
+  createInfluencer = async (req: SignupRequest): Promise<string> => {
     const influencer = new Influencer();
     influencer.password = await hash(req.password, 12);
     influencer.username = req.username;
@@ -28,6 +28,7 @@ export class InfluencerService {
     await this.dataSource.manager.save(category);
 
     (influencer.categories as Category[]) = [category];
-    await this.dataSource.manager.save(influencer);
+    const savedInfluencer = await this.dataSource.manager.save(influencer);
+    return savedInfluencer.username as string;
   };
 }

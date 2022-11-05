@@ -5,6 +5,7 @@ export interface MappedObject {
   type: string;
   id: string;
   name: string;
+  description: string;
   imageLocation: string | null;
   price: number;
   available: boolean;
@@ -16,6 +17,7 @@ export interface MappedObject {
 export interface ItemGetResult {
   id: string;
   name: string;
+  description: string;
   price: number;
   available: boolean;
   averageStars: number | undefined;
