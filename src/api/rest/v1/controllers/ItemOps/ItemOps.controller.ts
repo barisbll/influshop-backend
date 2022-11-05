@@ -8,7 +8,7 @@ import { RefreshTokenRequest } from '../Auth/Auth.type';
 import {
   ItemCreateRequest,
   ItemGroupCreateRequest,
-  ItemGroupUpdateRequest, ItemUpdateRequest, ItemWithExtraCreateRequest,
+  ItemGroupUpdateRequest, ItemWithExtraCreateRequest,
   ItemWithExtraUpdateRequest,
 } from './ItemOps.type';
 import { itemCreateValidator } from './validators/ItemCreate.validator';
@@ -186,11 +186,14 @@ export class ItemOpsController {
   };
 
   itemUpdate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
-    req.body as ItemUpdateRequest;
+    req.body as Omit<ItemWithExtraUpdateRequest, 'extraFeatures'>;
     const decodedToken = req.decodedToken as RefreshTokenRequest;
 
     try {
-      const validatedBody = (await itemUpdateValidator(req.body)) as unknown as ItemUpdateRequest;
+      const validatedBody = (await itemUpdateValidator(req.body)) as unknown as Omit<
+        ItemWithExtraUpdateRequest,
+        'extraFeatures'
+      >;
       await this.itemOps.itemUpdate(validatedBody, decodedToken);
       res.json({ message: 'Item Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {

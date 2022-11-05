@@ -7,9 +7,9 @@ import { ItemGroupUpdateRequest } from '../ItemOps.type';
 export const itemGroupUpdateValidator = async (itemGroupUpdateRequest: ItemGroupUpdateRequest) => {
   const schema = yup.object().shape({
     itemGroupId: yup.string().uuid().required(),
-    itemGroupName: yup.string().min(4).max(20).required(),
+    itemGroupName: yup.string().min(4).max(20).optional(),
     extraFeatures: yup.array().of(yup.string()).min(1).max(5)
-.required(),
+.optional(),
     itemGroupImage: yup.string().optional(),
   });
 
