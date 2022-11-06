@@ -92,4 +92,35 @@ export class CommentService {
 
     await this.commentCRUDService.commentUpdate(body, user, comment);
   };
+
+  commentDelete = async (
+    commentId: string,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<void> => {
+    const user = await this.findUser(decodedToken.id);
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: {
+        id: commentId,
+      },
+      relations: {
+        commentImages: true,
+        user: true,
+        item: true,
+      },
+    });
+
+    if (!comment) {
+      throw new CustomError('Comment not found', HttpStatus.NOT_FOUND);
+    }
+
+    if ((comment.user as User).id !== user.id) {
+      throw new CustomError('User not authorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    await this.commentCRUDService.commentDelete(comment, user);
+  };
 }

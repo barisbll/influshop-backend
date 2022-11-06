@@ -6,6 +6,7 @@ import { CommentService } from '../../../../../service/Comment.service';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
 import { CommentCreateRequest, CommentUpdateRequest } from './Comment.type';
 import { commentCreateValidator } from './validators/Comment.create.validator';
+import { commentDeleteValidator } from './validators/Comment.delete.validator';
 import { commentUpdateValidator } from './validators/Comment.update.validator';
 
 @Service()
@@ -40,6 +41,22 @@ export class CommentController {
         decodedToken,
       );
       res.json({ message: 'Comment Successfully Updated' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentDelete = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { commentId } = req.params as { commentId: string };
+
+    try {
+      const validatedBody = await commentDeleteValidator({ commentId });
+      await this.commentService.commentDelete(
+        validatedBody.commentId,
+        decodedToken,
+      );
+      res.json({ message: 'Comment Successfully Deleted' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
