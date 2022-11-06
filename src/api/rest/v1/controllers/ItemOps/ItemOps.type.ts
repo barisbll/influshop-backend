@@ -1,5 +1,6 @@
 export type ItemGroupCreateRequest = {
   itemGroupName: string;
+  itemGroupDescription ?: string;
   extraFeatures: string[];
   itemGroupImage?: string;
 };
@@ -7,6 +8,7 @@ export type ItemGroupCreateRequest = {
 export type ItemGroupUpdateRequest = {
   itemGroupId: string;
   itemGroupName?: string;
+  itemGroupDescription?: string;
   extraFeatures?: string[];
   itemGroupImage?: string;
 };
@@ -16,7 +18,7 @@ type ImageWithOrder = {
   order: number;
 };
 
-type ImageWithOrderUpdate = {
+export type ImageWithOrderUpdate = {
   image: string;
   order: number;
   isNew: boolean;

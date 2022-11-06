@@ -19,6 +19,7 @@ export type MappedCommentImages = {
 };
 
 export type MappedComments = {
+  id: string;
   comment: string;
   likes: number;
   dislikes: number;

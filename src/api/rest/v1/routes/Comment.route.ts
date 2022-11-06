@@ -10,5 +10,7 @@ export const createRouter = () => {
 
   router.post('/', isAuth, commentController.commentCreate);
 
+  router.put('/', isAuth, commentController.commentUpdate);
+
   return router;
 };
