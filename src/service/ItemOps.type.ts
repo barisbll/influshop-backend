@@ -1,4 +1,3 @@
-import Comment from '../db/entities/itemRelated/Comment';
 import ItemImage from '../db/entities/itemRelated/ItemImage';
 
 export interface MappedObject {
@@ -14,6 +13,21 @@ export interface MappedObject {
   isPinned: boolean;
 }
 
+export type MappedCommentImages = {
+  image: string;
+  order: number;
+};
+
+export type MappedComments = {
+  comment: string;
+  likes: number;
+  dislikes: number;
+  createdAt: Date;
+  updatedAt: Date;
+  commentImages: MappedCommentImages[] | undefined;
+  username: string;
+};
+
 export interface ItemGetResult {
   id: string;
   name: string;
@@ -21,7 +35,8 @@ export interface ItemGetResult {
   price: number;
   available: boolean;
   averageStars: number | undefined;
-  comments: Comment[] | undefined;
+  totalComments: number;
+  comments: MappedComments[] | undefined;
   images: ItemImage[] | undefined;
   extraFeatures: Record<string, string> | undefined;
 }

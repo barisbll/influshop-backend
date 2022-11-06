@@ -59,6 +59,11 @@ export default class Item {
   averageStars?: number;
 
   @Column({
+    default: 0,
+  })
+  totalComments?: number;
+
+  @Column({
     default: true,
   })
   isVisible?: boolean;

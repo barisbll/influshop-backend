@@ -1,3 +1,4 @@
+import { Max, Min } from 'class-validator';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import Comment from './Comment';
 
@@ -8,6 +9,11 @@ export default class CommentImage {
 
   @Column()
   imageLocation?: string;
+
+  @Column()
+  @Min(1)
+  @Max(5)
+  imageOrder?: number;
 
   @ManyToOne(() => Comment, (comment) => comment.commentImages)
   comment?: Comment;
