@@ -161,4 +161,33 @@ export class CommentCRUDService {
       .where({ id: comment.id })
       .execute();
   };
+
+  commentDelete = async (comment: Comment, user: User): Promise<void> => {
+    if (comment.commentImages) {
+      comment.commentImages.forEach(async (commentImage) => {
+        await this.imageUploader.deleteImage(commentImage.imageLocation as string);
+        await this.dataSource.getRepository(CommentImage).delete({ id: commentImage.id });
+      });
+    }
+
+    // await this.dataSource.getRepository(Comment).delete({ id: comment.id });
+
+    // eslint-disable-next-line no-param-reassign
+    user.comments = user.comments?.filter((userComment) => userComment.id !== comment.id);
+    await this.dataSource.getRepository(User).save(user);
+
+    if (comment.item) {
+    // eslint-disable-next-line no-param-reassign
+    comment.item.comments = comment.item.comments?.filter(
+      (itemComment) => itemComment.id !== comment.id,
+    );
+    if (comment.item.totalComments !== undefined) {
+      // eslint-disable-next-line no-param-reassign
+      comment.item.totalComments -= 1;
+    }
+    await this.dataSource.getRepository(Item).save(comment.item);
+    }
+
+    await this.dataSource.getRepository(Comment).delete({ id: comment.id });
+  };
 }

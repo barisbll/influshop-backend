@@ -12,5 +12,7 @@ export const createRouter = () => {
 
   router.put('/', isAuth, commentController.commentUpdate);
 
+  router.delete('/:commentId', isAuth, commentController.commentDelete);
+
   return router;
 };
