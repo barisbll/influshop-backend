@@ -22,7 +22,7 @@ export default class ItemImage {
 
   @Column()
   @Min(1)
-  @Max(10)
+  @Max(5)
   imageOrder?: number;
 
   @ManyToOne(() => Item, (item) => item.images)

@@ -1,6 +1,8 @@
+import Comment from '../db/entities/itemRelated/Comment';
 import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
-import { MappedObject } from './ItemOps.type';
+import User from '../db/entities/userRelated/User';
+import { MappedCommentImages, MappedComments, MappedObject } from './ItemOps.type';
 
 export const itemsMapper = (
   items: Item[] | undefined,
@@ -18,7 +20,7 @@ export const itemsMapper = (
         price: item.itemPrice,
         available: (item.itemQuantity || 1) > 0,
         averageStars: item.averageStars,
-        commentsLength: item.comments?.length,
+        commentsLength: item.totalComments,
         isPinned: pinnedItemId === item.id,
         updatedAt: item.itemGroup.updatedAt,
       };
@@ -33,7 +35,7 @@ export const itemsMapper = (
       price: item.itemPrice,
       available: (item.itemQuantity || 1) > 0,
       averageStars: item.averageStars,
-      commentsLength: item.comments?.length,
+      commentsLength: item.totalComments,
       isPinned: pinnedItemId === item.id,
       updatedAt: item.updated_at,
     };
@@ -120,4 +122,27 @@ export const updateItemGroupExtraFeaturesOnItemDelete = (
     }
   }
   return itemGroup;
+};
+
+export const commentsMapper = (comments: Comment[] | undefined): MappedComments[] | undefined => {
+  const mappedComments = comments?.map((comment) => {
+    const commentImages: MappedCommentImages[] | undefined = comment.commentImages?.map(
+      (image) => ({
+        image: image.imageLocation as string,
+        order: image.imageOrder as number,
+      }),
+    );
+
+    return {
+      comment: (comment.comment as string),
+      likes: (comment.likes as number),
+      dislikes: (comment.dislikes as number),
+      createdAt: (comment.createdAt as Date),
+      updatedAt: (comment.updatedAt as Date),
+      commentImages,
+      username: ((comment.user as User).username as string),
+    };
+  });
+
+  return mappedComments;
 };

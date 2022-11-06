@@ -14,7 +14,7 @@ import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
 import { CustomError } from '../util/CustomError';
 import { ItemService } from './Item.service';
-import { arrayEquals, itemsMapper } from './ItemOps.helper';
+import { arrayEquals, commentsMapper, itemsMapper } from './ItemOps.helper';
 import { ItemGetResult, MappedObject } from './ItemOps.type';
 
 @Service()
@@ -82,7 +82,7 @@ export class ItemOpsService {
         items: {
           itemGroup: true,
           images: true,
-          comments: true,
+          comments: false,
         },
         itemGroups: true,
         pinnedItem: true,
@@ -100,7 +100,10 @@ export class ItemOpsService {
     const item = await this.dataSource.getRepository(Item).findOne({
       where: { id: itemId },
       relations: {
-        comments: true,
+        comments: {
+          commentImages: true,
+          user: true,
+        },
         images: true,
       },
     });
@@ -115,6 +118,7 @@ export class ItemOpsService {
       itemPrice,
       itemQuantity,
       averageStars,
+      totalComments,
       comments,
       images,
       itemDescription,
@@ -132,7 +136,8 @@ export class ItemOpsService {
       price: itemPrice as number,
       available: (itemQuantity || 1) > 0,
       averageStars,
-      comments,
+      totalComments: totalComments as number,
+      comments: commentsMapper(comments),
       images: mappedImages,
     };
   };
@@ -150,7 +155,10 @@ export class ItemOpsService {
         itemGroups: {
           items: {
             images: true,
-            comments: true,
+            comments: {
+              commentImages: true,
+              user: true,
+            },
           },
         },
       },
@@ -181,6 +189,7 @@ export class ItemOpsService {
       itemPrice,
       itemQuantity,
       averageStars,
+      totalComments,
       comments,
       images,
       extraFeatures,
@@ -199,7 +208,8 @@ export class ItemOpsService {
       price: itemPrice as number,
       available: (itemQuantity || 1) > 0,
       averageStars,
-      comments,
+      totalComments: totalComments as number,
+      comments: commentsMapper(comments),
       images: mappedImages,
       extraFeatures,
     };
