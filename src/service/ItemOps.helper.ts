@@ -15,7 +15,7 @@ export const itemsMapper = (
         type: 'itemGroup',
         id,
         name: itemGroupName,
-        description: item.itemDescription,
+        description: item.itemGroup.itemGroupDescription,
         imageLocation,
         price: item.itemPrice,
         available: (item.itemQuantity || 1) > 0,
@@ -134,6 +134,7 @@ export const commentsMapper = (comments: Comment[] | undefined): MappedComments[
     );
 
     return {
+      id: (comment.id as string),
       comment: (comment.comment as string),
       likes: (comment.likes as number),
       dislikes: (comment.dislikes as number),

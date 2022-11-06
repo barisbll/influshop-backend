@@ -1,8 +1,12 @@
 /* eslint-disable no-else-return */
 import clone from 'clone';
+import HttpStatus from 'http-status-codes';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
-import { CommentCreateRequest } from '../api/rest/v1/controllers/Comment/Comment.type';
+import {
+  CommentCreateRequest,
+  CommentUpdateRequest,
+} from '../api/rest/v1/controllers/Comment/Comment.type';
 import Comment from '../db/entities/itemRelated/Comment';
 import CommentImage from '../db/entities/itemRelated/CommentImage';
 import Item from '../db/entities/itemRelated/Item';
@@ -33,7 +37,7 @@ export class CommentCRUDService {
     if (body.commentImages) {
       const orders = body.commentImages.map((imageObj) => imageObj.order);
       if (orders.length !== new Set(orders).size) {
-        throw new CustomError('Item Images Order Must Be Unique');
+        throw new CustomError('Comment Images Order Must Be Unique');
       }
 
       await this.dataSource.getRepository(Comment).save(comment);
@@ -79,10 +83,82 @@ export class CommentCRUDService {
     }
 
     return {
-      content: (savedComment.comment as string),
+      content: savedComment.comment as string,
       commentImages: returnImages,
-      createdAt: (savedComment.createdAt as unknown as string),
-      createdBy: (savedComment.user?.username as string),
+      createdAt: savedComment.createdAt as unknown as string,
+      createdBy: savedComment.user?.username as string,
     };
+  };
+
+  commentUpdate = async (
+    body: CommentUpdateRequest,
+    user: User,
+    comment: Comment,
+  ): Promise<void> => {
+    const updatedFeatures: Partial<Comment> = {};
+
+    if (body.comment) {
+      updatedFeatures.comment = body.comment;
+    }
+
+    if (body.commentImages) {
+      const oldCommentImages = comment.commentImages;
+
+      const commentImages: CommentImage[] = [];
+      body.commentImages.forEach(async (bodyImage) => {
+        if (bodyImage.isNew) {
+          const publicId = await this.imageUploader.uploadImage(
+            bodyImage.image,
+            'influshop_comments',
+          );
+          const commentImage = new CommentImage();
+          commentImage.imageLocation = publicId;
+          commentImage.imageOrder = bodyImage.order;
+          commentImage.comment = comment;
+          const newCommentImage = await this.dataSource
+            .getRepository(CommentImage)
+            .save(commentImage);
+          commentImages.push(newCommentImage);
+        } else {
+          const commentImage = await this.dataSource.getRepository(CommentImage).findOne({
+            where: { imageLocation: bodyImage.image },
+          });
+          if (!commentImage) {
+            throw new CustomError('Image Not Found', HttpStatus.NOT_FOUND);
+          }
+          if (commentImage.imageOrder === bodyImage.order) {
+            commentImages.push(commentImage);
+          } else {
+            await this.dataSource
+              .createQueryBuilder()
+              .update(CommentImage)
+              .set({
+                imageOrder: bodyImage.order,
+              })
+              .where({ id: commentImage.id })
+              .execute();
+            commentImage.imageOrder = bodyImage.order;
+            commentImages.push(commentImage);
+          }
+        }
+
+        oldCommentImages?.forEach(async (oldCommentImage) => {
+          if (
+            !commentImages.find(
+              (newCommentImage) => newCommentImage.imageLocation === oldCommentImage.imageLocation,
+            )
+          ) {
+            await this.imageUploader.deleteImage(oldCommentImage.imageLocation as string);
+            await this.dataSource.getRepository(CommentImage).delete({ id: oldCommentImage.id });
+          }
+        });
+      });
+    }
+    await this.dataSource
+      .createQueryBuilder()
+      .update(Comment)
+      .set(updatedFeatures)
+      .where({ id: comment.id })
+      .execute();
   };
 }

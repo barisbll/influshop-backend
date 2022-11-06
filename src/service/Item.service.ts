@@ -31,6 +31,7 @@ export class ItemService {
   createItemGroup = async (body: ItemGroupCreateRequest, influencer: Influencer) => {
     const itemGroup = new ItemGroup();
     itemGroup.itemGroupName = body.itemGroupName;
+    if (body.itemGroupDescription) itemGroup.itemGroupDescription = body.itemGroupDescription;
     itemGroup.influencer = influencer;
     itemGroup.extraFeatures = body.extraFeatures.reduce((a, v) => ({ ...a, [v]: [] }), {});
 
@@ -194,6 +195,10 @@ export class ItemService {
 
     if (body.itemGroupName) {
       updatedFeatures.itemGroupName = body.itemGroupName;
+    }
+
+    if (body.itemGroupDescription) {
+      updatedFeatures.itemGroupDescription = body.itemGroupDescription;
     }
 
     if (body.extraFeatures) {

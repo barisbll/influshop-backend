@@ -21,6 +21,12 @@ export default class ItemGroup {
 
   @Column({
     nullable: true,
+  })
+  @Length(1, 280)
+  itemGroupDescription?: string;
+
+  @Column({
+    nullable: true,
     default: null,
   })
   imageLocation?: string;

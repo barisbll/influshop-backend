@@ -4,8 +4,9 @@ import { Service } from 'typedi';
 import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { CommentService } from '../../../../../service/Comment.service';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
-import { CommentCreateRequest } from './Comment.type';
+import { CommentCreateRequest, CommentUpdateRequest } from './Comment.type';
 import { commentCreateValidator } from './validators/Comment.create.validator';
+import { commentUpdateValidator } from './validators/Comment.update.validator';
 
 @Service()
 export class CommentController {
@@ -23,6 +24,22 @@ export class CommentController {
         decodedToken,
       );
       res.json({ message: 'Comment Successfully Created', comment }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentUpdate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const commentUpdateRequest = req.body as CommentUpdateRequest;
+
+    try {
+      const validatedBody = await commentUpdateValidator(commentUpdateRequest);
+      await this.commentService.commentUpdate(
+        validatedBody,
+        decodedToken,
+      );
+      res.json({ message: 'Comment Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

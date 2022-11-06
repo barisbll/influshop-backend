@@ -6,7 +6,8 @@ import { RefreshTokenRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
 import {
   ItemCreateRequest,
   ItemGroupCreateRequest,
-  ItemGroupUpdateRequest, ItemWithExtraCreateRequest,
+  ItemGroupUpdateRequest,
+  ItemWithExtraCreateRequest,
   ItemWithExtraUpdateRequest,
 } from '../api/rest/v1/controllers/ItemOps/ItemOps.type';
 import Influencer from '../db/entities/influencerRelated/Influencer';
@@ -56,8 +57,8 @@ export class ItemOpsService {
     }
 
     return influencer.itemGroups?.map((itemGroup) => {
-      const { itemGroupName, extraFeatures, id, imageLocation } = itemGroup;
-      return { itemGroupName, extraFeatures, id, imageLocation };
+      const { itemGroupName, itemGroupDescription, extraFeatures, id, imageLocation } = itemGroup;
+      return { itemGroupName, itemGroupDescription, extraFeatures, id, imageLocation };
     });
   };
 
@@ -70,9 +71,10 @@ export class ItemOpsService {
       throw new CustomError('Item Group Does Not Exist', HttpStatus.NOT_FOUND);
     }
 
-    const { itemGroupName, extraFeatures, imageLocation, isVisible } = itemGroup;
+    const { itemGroupName, itemGroupDescription, extraFeatures, imageLocation, isVisible } =
+      itemGroup;
 
-    return { itemGroupName, extraFeatures, imageLocation, isVisible };
+    return { itemGroupName, itemGroupDescription, extraFeatures, imageLocation, isVisible };
   };
 
   itemsGet = async (influencerName: string): Promise<MappedObject[]> => {
@@ -312,7 +314,6 @@ export class ItemOpsService {
     }
 
     if (
-
       body.itemGroupName &&
       !(await this.isItemGroupNameUniqueToInfluencer(body.itemGroupName, influencer)) &&
       body.itemGroupName !== itemGroup.itemGroupName
