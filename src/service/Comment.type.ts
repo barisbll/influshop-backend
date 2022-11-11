@@ -4,6 +4,7 @@ type CommentImageReturn = {
 };
 
 export type CommentReturn = {
+  id: string;
   content: string;
   commentImages: CommentImageReturn[] | null;
   createdAt: string;

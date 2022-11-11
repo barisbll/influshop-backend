@@ -1,4 +1,4 @@
-import { Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import User from '../userRelated/User';
 import Comment from './Comment';
 
@@ -9,9 +9,6 @@ export default class CommentLike {
 
   @Column()
   isLike?: boolean;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @ManyToOne(() => Comment, (comment) => comment.commentLikes)
   comment?: Comment;

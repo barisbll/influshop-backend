@@ -83,6 +83,7 @@ export class CommentCRUDService {
     }
 
     return {
+      id: clonedComment.id as string,
       content: savedComment.comment as string,
       commentImages: returnImages,
       createdAt: savedComment.createdAt as unknown as string,
