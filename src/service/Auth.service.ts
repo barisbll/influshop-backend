@@ -84,7 +84,7 @@ export class AuthService {
 
   createToken = (id: string, email: string): string => {
     const token = jwt.sign({ id, email }, config.jwtKey as string, {
-      expiresIn: '24h',
+      expiresIn: '72h',
     });
 
     return token;
