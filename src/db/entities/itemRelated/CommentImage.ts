@@ -1,5 +1,5 @@
 import { Max, Min } from 'class-validator';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, DeleteDateColumn } from 'typeorm';
 import Comment from './Comment';
 
 @Entity('comment_image')
@@ -14,6 +14,9 @@ export default class CommentImage {
   @Min(1)
   @Max(5)
   imageOrder?: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => Comment, (comment) => comment.commentImages)
   comment?: Comment;

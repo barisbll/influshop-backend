@@ -17,6 +17,7 @@ import { CustomError } from '../util/CustomError';
 import { ItemService } from './Item.service';
 import { arrayEquals, commentsMapper, itemsMapper } from './ItemOps.helper';
 import { ItemGetResult, MappedObject } from './ItemOps.type';
+import User from '../db/entities/userRelated/User';
 
 @Service()
 export class ItemOpsService {
@@ -98,13 +99,35 @@ export class ItemOpsService {
     return itemsMapper(influencer.items, influencer?.pinnedItem?.id);
   };
 
-  itemGet = async (itemId: string): Promise<Omit<ItemGetResult, 'extraFeatures'>> => {
+  itemGet = async (
+    itemId: string,
+    decodedToken: RefreshTokenRequest | undefined,
+  ): Promise<Omit<ItemGetResult, 'extraFeatures'>> => {
+    let user: User | null = null;
+    if (decodedToken) {
+      user = await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentLikes: {
+            comment: true,
+          },
+        },
+      });
+
+      if (!user) {
+        throw new CustomError('The User Does Not Exist', HttpStatus.NOT_FOUND);
+      }
+    }
+
     const item = await this.dataSource.getRepository(Item).findOne({
       where: { id: itemId },
       relations: {
         comments: {
           commentImages: true,
           user: true,
+          commentLikes: {
+            user: !!user,
+          },
         },
         images: true,
       },
@@ -139,7 +162,7 @@ export class ItemOpsService {
       available: (itemQuantity || 1) > 0,
       averageStars,
       totalComments: totalComments as number,
-      comments: commentsMapper(comments),
+      comments: commentsMapper(comments, user?.commentLikes),
       images: mappedImages,
     };
   };
@@ -148,7 +171,24 @@ export class ItemOpsService {
     influencerName: string,
     itemGroupName: string,
     queryParams: unknown,
+    decodedToken: RefreshTokenRequest | undefined,
   ): Promise<ItemGetResult> => {
+    let user: User | null = null;
+    if (decodedToken) {
+      user = await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentLikes: {
+            comment: true,
+          },
+        },
+      });
+
+      if (!user) {
+        throw new CustomError('The User Does Not Exist', HttpStatus.NOT_FOUND);
+      }
+    }
+
     const influencer = await this.dataSource.getRepository(Influencer).findOne({
       where: {
         username: influencerName,
@@ -160,6 +200,9 @@ export class ItemOpsService {
             comments: {
               commentImages: true,
               user: true,
+              commentLikes: {
+                user: !!user,
+              },
             },
           },
         },
@@ -211,7 +254,7 @@ export class ItemOpsService {
       available: (itemQuantity || 1) > 0,
       averageStars,
       totalComments: totalComments as number,
-      comments: commentsMapper(comments),
+      comments: commentsMapper(comments, user?.commentLikes),
       images: mappedImages,
       extraFeatures,
     };

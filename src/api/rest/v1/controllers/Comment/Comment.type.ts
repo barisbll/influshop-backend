@@ -20,3 +20,13 @@ export type CommentUpdateRequest = {
     comment?: string;
     commentImages?: ImageWithOrderUpdate[];
 };
+
+export type CommentLikeOperationRequest = {
+    commentId: string;
+    isLike: boolean;
+};
+
+export type CommentDislikeOperationRequest = {
+    commentId: string;
+    isDislike: boolean;
+};

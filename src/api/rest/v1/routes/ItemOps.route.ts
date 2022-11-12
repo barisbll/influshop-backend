@@ -1,6 +1,6 @@
 import express from 'express';
 import Container from 'typedi';
-import { isAuth } from '../../../../middleware/is-auth';
+import { isAuth, optionalIsAuth } from '../../../../middleware/is-auth';
 import { ItemOpsController } from '../controllers/ItemOps/ItemOps.controller';
 
 export const createRouter = () => {
@@ -14,9 +14,9 @@ export const createRouter = () => {
 
   router.get('/items/:influencerName', itemOpsController.itemsGet);
 
-  router.get('/item/:itemId', itemOpsController.itemGet);
+  router.get('/item/:itemId', optionalIsAuth, itemOpsController.itemGet);
 
-  router.get('/item/:influencerName/:itemGroupName/extra', itemOpsController.itemGetWithExtraFeatures);
+  router.get('/item/:influencerName/:itemGroupName/extra', optionalIsAuth, itemOpsController.itemGetWithExtraFeatures);
 
   router.post('/item-group', isAuth, itemOpsController.itemGroupCreate);
 

@@ -37,3 +37,27 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 };
+
+// eslint-disable-next-line consistent-return
+export const optionalIsAuth = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.get('Authorization') as string;
+  try {
+    if (!authHeader) {
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    const decodedToken: Token = jwt.verify(token, config.jwtKey) as Token;
+
+    if (!decodedToken) {
+      throw new CustomError('Not authenticated', 401);
+    }
+
+    (req as ExtendedRequest).decodedToken = decodedToken;
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+};

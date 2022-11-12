@@ -1,6 +1,7 @@
 import Comment from '../db/entities/itemRelated/Comment';
 import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
+import CommentLike from '../db/entities/itemRelated/CommentLike';
 import User from '../db/entities/userRelated/User';
 import { MappedCommentImages, MappedComments, MappedObject } from './ItemOps.type';
 
@@ -124,7 +125,10 @@ export const updateItemGroupExtraFeaturesOnItemDelete = (
   return itemGroup;
 };
 
-export const commentsMapper = (comments: Comment[] | undefined): MappedComments[] | undefined => {
+export const commentsMapper = (
+  comments: Comment[] | undefined,
+  commentLikes: CommentLike[] | undefined,
+): MappedComments[] | undefined => {
   const mappedComments = comments?.map((comment) => {
     const commentImages: MappedCommentImages[] | undefined = comment.commentImages?.map(
       (image) => ({
@@ -133,15 +137,25 @@ export const commentsMapper = (comments: Comment[] | undefined): MappedComments[
       }),
     );
 
+    const commentLikedByUser = commentLikes?.find(
+      (commentLike) => commentLike.isLike && (commentLike.comment as Comment)?.id === comment.id,
+    );
+
+    const commentDislikedByUser = commentLikes?.find(
+      (commentLike) => !commentLike.isLike && (commentLike.comment as Comment)?.id === comment.id,
+    );
+
     return {
-      id: (comment.id as string),
-      comment: (comment.comment as string),
-      likes: (comment.likes as number),
-      dislikes: (comment.dislikes as number),
-      createdAt: (comment.createdAt as Date),
-      updatedAt: (comment.updatedAt as Date),
+      id: comment.id as string,
+      comment: comment.comment as string,
+      likes: comment.likes as number,
+      dislikes: comment.dislikes as number,
+      createdAt: comment.createdAt as Date,
+      updatedAt: comment.updatedAt as Date,
       commentImages,
-      username: ((comment.user as User).username as string),
+      username: (comment.user as User)?.username as string,
+      isLikedByUser: !!commentLikedByUser,
+      isDislikedByUser: !!commentDislikedByUser,
     };
   });
 
