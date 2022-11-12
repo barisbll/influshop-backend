@@ -2,7 +2,12 @@ import HttpStatus from 'http-status-codes';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import { RefreshTokenRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
-import { CommentCreateRequest, CommentUpdateRequest } from '../api/rest/v1/controllers/Comment/Comment.type';
+import {
+  CommentCreateRequest,
+  CommentUpdateRequest,
+  CommentLikeOperationRequest,
+  CommentDislikeOperationRequest,
+} from '../api/rest/v1/controllers/Comment/Comment.type';
 import Comment from '../db/entities/itemRelated/Comment';
 import Item from '../db/entities/itemRelated/Item';
 import User from '../db/entities/userRelated/User';
@@ -93,11 +98,16 @@ export class CommentService {
     await this.commentCRUDService.commentUpdate(body, user, comment);
   };
 
-  commentDelete = async (
-    commentId: string,
-    decodedToken: RefreshTokenRequest,
-  ): Promise<void> => {
-    const user = await this.findUser(decodedToken.id);
+  commentDelete = async (commentId: string, decodedToken: RefreshTokenRequest): Promise<void> => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        comments: true,
+        commentLikes: true,
+      },
+    });
     if (!user) {
       throw new CustomError('User not found', HttpStatus.NOT_FOUND);
     }
@@ -108,6 +118,7 @@ export class CommentService {
       },
       relations: {
         commentImages: true,
+        commentLikes: true,
         user: true,
         item: true,
       },
@@ -120,7 +131,80 @@ export class CommentService {
     if ((comment.user as User).id !== user.id) {
       throw new CustomError('User not authorized', HttpStatus.UNAUTHORIZED);
     }
-
     await this.commentCRUDService.commentDelete(comment, user);
   };
+
+  commentLike = async (
+    body: CommentLikeOperationRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<void> => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        commentLikes: {
+          comment: true,
+        },
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: {
+        id: body.commentId,
+      },
+      relations: {
+        commentLikes: {
+          comment: true,
+        },
+        },
+    });
+
+    if (!comment) {
+      throw new CustomError('Comment not found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.commentCRUDService.commentLike(body, comment, user);
+  };
+
+commentDislike = async (
+  body: CommentDislikeOperationRequest,
+  decodedToken: RefreshTokenRequest,
+): Promise<void> => {
+  const user = await this.dataSource.getRepository(User).findOne({
+    where: {
+      id: decodedToken.id,
+    },
+    relations: {
+      commentLikes: {
+        comment: true,
+      },
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+  }
+
+  const comment = await this.dataSource.getRepository(Comment).findOne({
+    where: {
+      id: body.commentId,
+    },
+    relations: {
+      commentLikes: {
+        comment: true,
+      },
+      },
+  });
+
+  if (!comment) {
+    throw new CustomError('Comment not found', HttpStatus.NOT_FOUND);
+  }
+
+  await this.commentCRUDService.commentDislike(body, comment, user);
+};
 }

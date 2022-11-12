@@ -70,27 +70,29 @@ export class ItemOpsController {
     }
   };
 
-  itemGet = async (req: Request, res: Response, next: NextFunction) => {
+  itemGet = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const { itemId } = req.params as { itemId: string };
+    const decodedToken = req.decodedToken as RefreshTokenRequest | undefined;
 
     try {
       const validatedBody = await itemGetValidator({
         itemId,
       });
 
-      const item = await this.itemOps.itemGet(validatedBody.itemId);
+      const item = await this.itemOps.itemGet(validatedBody.itemId, decodedToken);
       res.json({ message: 'Item Successfully Retrieved', item }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
   };
 
-  itemGetWithExtraFeatures = async (req: Request, res: Response, next: NextFunction) => {
+  itemGetWithExtraFeatures = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const { influencerName, itemGroupName } = req.params as {
       influencerName: string;
       itemGroupName: string;
     };
     const queryParams = req.query as { isExtra: string };
+    const decodedToken = req.decodedToken as RefreshTokenRequest | undefined;
 
     if (Object.keys(queryParams).length < 1 || Object.keys(queryParams).length > 5) {
       next(
@@ -110,6 +112,7 @@ export class ItemOpsController {
         validatedBody.influencerName,
         validatedBody.itemGroupName,
         queryParams,
+        decodedToken,
       );
       res.json({ message: 'Item Successfully Retrieved', item }).status(HttpStatus.OK);
     } catch (err) {

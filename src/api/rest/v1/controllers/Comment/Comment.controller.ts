@@ -4,10 +4,12 @@ import { Service } from 'typedi';
 import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { CommentService } from '../../../../../service/Comment.service';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
-import { CommentCreateRequest, CommentUpdateRequest } from './Comment.type';
+import { CommentCreateRequest, CommentUpdateRequest, CommentLikeOperationRequest, CommentDislikeOperationRequest } from './Comment.type';
 import { commentCreateValidator } from './validators/Comment.create.validator';
 import { commentDeleteValidator } from './validators/Comment.delete.validator';
 import { commentUpdateValidator } from './validators/Comment.update.validator';
+import { commentLikeValidator } from './validators/Comment.like.validator';
+import { commentDislikeValidator } from './validators/Comment.dislike.validator';
 
 @Service()
 export class CommentController {
@@ -57,6 +59,40 @@ export class CommentController {
         decodedToken,
       );
       res.json({ message: 'Comment Successfully Deleted' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentLike = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const commentLikeRequest = req.body as CommentLikeOperationRequest;
+
+    try {
+      const validatedBody = await commentLikeValidator(commentLikeRequest);
+      await this.commentService.commentLike(
+        validatedBody,
+        decodedToken,
+      );
+      const message = validatedBody.isLike ? 'Comment Successfully Liked' : 'Comment Successfully Unliked';
+      res.json({ message }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentDislike = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const commentDislikeRequest = req.body as CommentDislikeOperationRequest;
+
+    try {
+      const validatedBody = await commentDislikeValidator(commentDislikeRequest);
+      await this.commentService.commentDislike(
+        validatedBody,
+        decodedToken,
+      );
+      const message = validatedBody.isDislike ? 'Comment Successfully Disliked' : 'Comment Successfully Undisliked';
+      res.json({ message }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

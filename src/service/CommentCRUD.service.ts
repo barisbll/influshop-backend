@@ -6,6 +6,8 @@ import { DataSource } from 'typeorm';
 import {
   CommentCreateRequest,
   CommentUpdateRequest,
+  CommentLikeOperationRequest,
+  CommentDislikeOperationRequest,
 } from '../api/rest/v1/controllers/Comment/Comment.type';
 import Comment from '../db/entities/itemRelated/Comment';
 import CommentImage from '../db/entities/itemRelated/CommentImage';
@@ -14,6 +16,7 @@ import User from '../db/entities/userRelated/User';
 import { CustomError } from '../util/CustomError';
 import { CommentReturn } from './Comment.type';
 import { ImageUploader } from './Image.service';
+import CommentLike from '../db/entities/itemRelated/CommentLike';
 
 @Service()
 export class CommentCRUDService {
@@ -167,28 +170,168 @@ export class CommentCRUDService {
     if (comment.commentImages) {
       comment.commentImages.forEach(async (commentImage) => {
         await this.imageUploader.deleteImage(commentImage.imageLocation as string);
-        await this.dataSource.getRepository(CommentImage).delete({ id: commentImage.id });
+          await this.dataSource
+            .getRepository(CommentImage)
+            .createQueryBuilder()
+            .softDelete()
+            .from(CommentImage)
+            .where('id = :id', { id: commentImage.id })
+            .execute();
       });
     }
 
-    // await this.dataSource.getRepository(Comment).delete({ id: comment.id });
-
-    // eslint-disable-next-line no-param-reassign
-    user.comments = user.comments?.filter((userComment) => userComment.id !== comment.id);
+    comment.commentLikes?.forEach(async (commentLike) => {
+      await this.dataSource.getRepository(CommentLike).delete({ id: commentLike.id });
+    });
     await this.dataSource.getRepository(User).save(user);
 
     if (comment.item) {
-    // eslint-disable-next-line no-param-reassign
-    comment.item.comments = comment.item.comments?.filter(
-      (itemComment) => itemComment.id !== comment.id,
-    );
-    if (comment.item.totalComments !== undefined) {
       // eslint-disable-next-line no-param-reassign
-      comment.item.totalComments -= 1;
+      comment.item.comments = comment.item.comments?.filter(
+        (itemComment) => itemComment.id !== comment.id,
+      );
+      if (comment.item.totalComments !== undefined) {
+        // eslint-disable-next-line no-param-reassign
+        comment.item.totalComments -= 1;
+      }
+      await this.dataSource.getRepository(Item).save(comment.item);
     }
-    await this.dataSource.getRepository(Item).save(comment.item);
+    await this.dataSource
+    .getRepository(Comment)
+    .createQueryBuilder()
+    .softDelete()
+    .from(Comment)
+    .where('id = :id', { id: comment.id })
+    .execute();
+  };
+
+  didUserLikeDislikeComment = (
+    userCommentLikes: CommentLike[] | undefined,
+    commentId: string,
+    isLikeOrDislike: boolean,
+  ): boolean => {
+    const foundCommentLike = userCommentLikes?.find(
+      (commentLike) =>
+        // eslint-disable-next-line max-len
+        commentLike.isLike === isLikeOrDislike && (commentLike.comment as Comment)?.id === commentId,
+    );
+
+    return !!foundCommentLike;
+  };
+
+  commentLike = async (
+    body: CommentLikeOperationRequest,
+    oldComment: Comment,
+    user: User,
+  ): Promise<void> => {
+    const comment = clone(oldComment);
+
+    if (body.isLike) {
+      if (this.didUserLikeDislikeComment(user.commentLikes, body.commentId, true)) {
+        throw new CustomError('Already Liked', HttpStatus.BAD_REQUEST);
+      }
+
+      if (this.didUserLikeDislikeComment(user.commentLikes, body.commentId, false)) {
+        throw new CustomError(
+          'A user cannot like and dislike at the same time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const commentLike = new CommentLike();
+      commentLike.isLike = true;
+      commentLike.comment = comment;
+      commentLike.user = user;
+      await this.dataSource.getRepository(CommentLike).save(commentLike);
+      comment.commentLikes = [...(comment.commentLikes || []), commentLike];
+      (comment.likes as number) += 1;
+      // eslint-disable-next-line no-param-reassign
+      user.commentLikes = [...(user.commentLikes || []), commentLike];
     }
 
-    await this.dataSource.getRepository(Comment).delete({ id: comment.id });
+    if (!body.isLike) {
+      if (!this.didUserLikeDislikeComment(user.commentLikes, body.commentId, true)) {
+        throw new CustomError('Not Previously Liked', HttpStatus.BAD_REQUEST);
+      }
+
+      const commentLike = await this.dataSource.getRepository(CommentLike).findOne({
+        where: { comment: { id: body.commentId }, user: { id: user.id } },
+      });
+
+      if (!commentLike) {
+        throw new CustomError('Comment Like Not Found', HttpStatus.NOT_FOUND);
+      }
+      await this.dataSource.getRepository(CommentLike).delete({ id: commentLike.id });
+      comment.commentLikes = comment.commentLikes?.filter(
+        (commentLike2) => commentLike2.id !== body.commentId,
+      );
+      // eslint-disable-next-line no-param-reassign
+      user.commentLikes = user.commentLikes?.filter(
+        (commentLike2) => commentLike2.id !== body.commentId,
+      );
+
+      (comment.likes as number) -= 1;
+    }
+
+    await this.dataSource.getRepository(Comment).save(comment);
+    await this.dataSource.getRepository(User).save(user);
+  };
+
+  commentDislike = async (
+    body: CommentDislikeOperationRequest,
+    oldComment: Comment,
+    user: User,
+  ): Promise<void> => {
+    const comment = clone(oldComment);
+
+    if (body.isDislike) {
+      if (this.didUserLikeDislikeComment(user.commentLikes, body.commentId, false)) {
+        throw new CustomError('Already Disliked', HttpStatus.BAD_REQUEST);
+      }
+
+      if (this.didUserLikeDislikeComment(user.commentLikes, body.commentId, true)) {
+        throw new CustomError(
+          'A user cannot like and dislike at the same time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const commentLike = new CommentLike();
+      commentLike.isLike = false;
+      commentLike.comment = comment;
+      commentLike.user = user;
+      await this.dataSource.getRepository(CommentLike).save(commentLike);
+      comment.commentLikes = [...(comment.commentLikes || []), commentLike];
+      (comment.dislikes as number) += 1;
+      // eslint-disable-next-line no-param-reassign
+      user.commentLikes = [...(user.commentLikes || []), commentLike];
+    }
+
+    if (!body.isDislike) {
+      if (!this.didUserLikeDislikeComment(user.commentLikes, body.commentId, false)) {
+        throw new CustomError('Not Previously Disliked', HttpStatus.BAD_REQUEST);
+      }
+
+      const commentLike = await this.dataSource.getRepository(CommentLike).findOne({
+        where: { comment: { id: body.commentId }, user: { id: user.id } },
+      });
+
+      if (!commentLike) {
+        throw new CustomError('Comment Dislike Not Found', HttpStatus.NOT_FOUND);
+      }
+      await this.dataSource.getRepository(CommentLike).delete({ id: commentLike.id });
+      comment.commentLikes = comment.commentLikes?.filter(
+        (commentLike2) => commentLike2.id !== body.commentId,
+      );
+      // eslint-disable-next-line no-param-reassign
+      user.commentLikes = user.commentLikes?.filter(
+        (commentLike2) => commentLike2.id !== body.commentId,
+      );
+
+      (comment.dislikes as number) -= 1;
+    }
+
+    await this.dataSource.getRepository(Comment).save(comment);
+    await this.dataSource.getRepository(User).save(user);
   };
 }

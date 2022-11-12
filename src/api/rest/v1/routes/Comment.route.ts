@@ -14,5 +14,9 @@ export const createRouter = () => {
 
   router.delete('/:commentId', isAuth, commentController.commentDelete);
 
+  router.post('/like', isAuth, commentController.commentLike);
+
+  router.post('/dislike', isAuth, commentController.commentDislike);
+
   return router;
 };
