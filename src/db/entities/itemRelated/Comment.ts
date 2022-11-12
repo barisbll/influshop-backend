@@ -45,6 +45,7 @@ export default class Comment {
 
   @OneToMany(() => CommentImage, (commentImage) => commentImage.comment, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   commentImages?: CommentImage[];
 
