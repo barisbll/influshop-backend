@@ -10,7 +10,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Stars } from '../../../config/types';
 import HistoricalRecord from '../general/HistoricalRecord';
 import Category from '../influencerRelated/Category';
 import Influencer from '../influencerRelated/Influencer';
@@ -51,10 +50,11 @@ export default class Item {
   })
   itemPrice?: number;
 
+  @Min(1)
+  @Max(5)
   @Column({
-    type: 'enum',
-    enum: Stars,
     nullable: true,
+    type: 'numeric',
   })
   averageStars?: number;
 
