@@ -45,6 +45,12 @@ const tempConfig = convict({
     default: 'root',
     env: 'ROOT_ADMIN_PASSWORD',
   },
+  adminPaginationLimit: {
+    doc: 'The pagination limit for admin',
+    format: 'int',
+    default: 10,
+    env: 'ADMIN_PAGINATION_LIMIT',
+  },
   db: {
     host: {
       format: nonEmptyString('DATABASE_HOST'),

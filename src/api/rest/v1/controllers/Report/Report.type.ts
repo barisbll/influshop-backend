@@ -11,3 +11,8 @@ export type ItemReportReadRequest = {
     itemId: string;
     isReaderUser: boolean;
 };
+
+export type ItemReportInspectRequest = {
+    itemId: string;
+    isApprove: boolean;
+};
