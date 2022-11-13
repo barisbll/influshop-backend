@@ -10,7 +10,13 @@ export const createRouter = () => {
 
   router.post('/item/read', isAuth, reportController.itemReportRead);
 
+  router.get('/items/read/:pId', isAuth, reportController.itemReportsRead);
+
+  router.get('/item/read/:itemId', isAuth, reportController.itemReportAdminRead);
+
   router.post('/item/create', isAuth, reportController.itemReportCreate);
+
+  router.post('/item/inspect', isAuth, reportController.itemReportInspect);
 
   return router;
 };

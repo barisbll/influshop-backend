@@ -33,6 +33,12 @@ export default class ItemReport {
   })
   isReportControlled?: boolean;
 
+  @Column({
+    nullable: true,
+    default: null,
+  })
+  isApproved?: boolean;
+
   @CreateDateColumn()
   createdAt?: Date;
 

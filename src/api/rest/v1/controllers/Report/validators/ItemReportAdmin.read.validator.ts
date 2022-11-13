@@ -3,13 +3,9 @@ import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
-export const itemReportReadValidator = async (reportReadRequest: {
-  itemId: string;
-  isReaderUser: boolean;
-}) => {
+export const itemReportAdminReadValidator = async (reportReadRequest: { itemId: string}) => {
   const schema = yup.object().shape({
     itemId: yup.string().uuid().required(),
-    isReaderUser: yup.boolean().required(),
   });
 
   try {

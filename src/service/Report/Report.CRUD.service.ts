@@ -5,19 +5,25 @@ import HttpStatus from 'http-status-codes';
 import {
   ItemReportCreateRequest,
   ItemReportReadRequest,
+  ItemReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
 import Influencer from '../../db/entities/influencerRelated/Influencer';
 import ItemReport from '../../db/entities/itemRelated/ItemReport';
 import { CustomError } from '../../util/CustomError';
+import Admin from '../../db/entities/adminRelated/Admin';
+import logger from '../../config/logger';
+import { ItemService } from '../Item.service';
 
 @Service()
 export class ReportCRUDService {
   private dataSource: DataSource;
+  private itemService: ItemService;
 
   constructor() {
     this.dataSource = Container.get('dataSource');
+    this.itemService = Container.get(ItemService);
   }
 
   itemReportRead = async (
@@ -45,13 +51,11 @@ export class ReportCRUDService {
   ): Promise<string> => {
     const item = clone(oldItem);
     const client = clone(oldClient);
-
     if (body.isReport) {
       // Create or update ItemReport
       const existingItemReport = (client?.itemReports as ItemReport[]).find(
         (clientsItemReport) => (clientsItemReport.item as Item).id === item.id,
       );
-
       if (existingItemReport) {
         // Update existing ItemReport
         if (existingItemReport.report === body.reason) {
@@ -118,5 +122,54 @@ export class ReportCRUDService {
       .getRepository(ItemReport)
       .remove(existingItemReport);
     return deletedItemReport.id as string;
+  };
+
+  itemReportInspect = async (
+    body: ItemReportInspectRequest,
+    oldItem: Item,
+    oldAdmin: Admin,
+  ): Promise<string> => {
+    const item = clone(oldItem);
+    const admin = clone(oldAdmin);
+
+    if (body.isApprove) {
+      item.itemReports?.forEach(async (oldItemReport) => {
+        const itemReport = clone(oldItemReport);
+        itemReport.isReportControlled = true;
+        itemReport.admin = admin;
+        itemReport.isApproved = true;
+        await this.dataSource.getRepository(ItemReport).save(itemReport);
+      });
+      return item.id as string;
+    }
+    // delete item
+    item.itemReports?.forEach(async (oldItemReport) => {
+      const itemReport = clone(oldItemReport);
+      itemReport.isReportControlled = true;
+      itemReport.admin = admin;
+      itemReport.isApproved = false;
+      await this.dataSource.getRepository(ItemReport).save(itemReport);
+    });
+
+    try {
+      const influencer = await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: (item.influencer as Influencer).id },
+      });
+
+      if (!influencer) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+
+      if (item.extraFeatures) {
+        await this.itemService.deleteItemWithExtra(influencer, item);
+      } else {
+        await this.itemService.deleteItem(influencer, item);
+      }
+
+      return item.id as string;
+    } catch (error) {
+      logger.error(error);
+      throw new CustomError('Item Delete Failed', HttpStatus.INTERNAL_SERVER_ERROR, error);
+    }
   };
 }

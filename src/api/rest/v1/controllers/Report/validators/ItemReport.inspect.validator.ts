@@ -2,18 +2,18 @@ import HttpStatus from 'http-status-codes';
 import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
+import { ItemReportInspectRequest } from '../Report.type';
 
-export const itemReportReadValidator = async (reportReadRequest: {
-  itemId: string;
-  isReaderUser: boolean;
-}) => {
+export const itemReportInspectValidator = async (
+    itemReportInspectRequest: ItemReportInspectRequest,
+) => {
   const schema = yup.object().shape({
     itemId: yup.string().uuid().required(),
-    isReaderUser: yup.boolean().required(),
+    isApprove: yup.boolean().required(),
   });
 
   try {
-    return await schema.validate(reportReadRequest, { abortEarly: false });
+    return await schema.validate(itemReportInspectRequest, { abortEarly: false });
   } catch (err) {
     const validationError = err as yup.ValidationError;
     logger.error(err);
