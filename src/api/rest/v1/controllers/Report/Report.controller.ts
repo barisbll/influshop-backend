@@ -8,12 +8,19 @@ import { itemReportCreateValidator } from './validators/ItemReport.create.valida
 import {
   ItemReportCreateRequest,
   ItemReportReadRequest,
+  ItemReportAdminReadRequest,
   ItemReportInspectRequest,
+  CommentReportCreateRequest,
+  CommentReportReadRequest,
+  CommentReportAdminReadRequest,
 } from './Report.type';
 import { itemReportReadValidator } from './validators/ItemReport.read.validator';
 import { itemReportsReadValidator } from './validators/ItemReports.read.validator';
 import { itemReportAdminReadValidator } from './validators/ItemReportAdmin.read.validator';
 import { itemReportInspectValidator } from './validators/ItemReport.inspect.validator';
+import { commentReportCreateValidator } from './validators/CommentReport.create.validator';
+import { commentReportReadValidator } from './validators/CommentReport.read.validator';
+import { commentReportAdminReadValidator } from './validators/CommentReportAdmin.read.validator';
 
 @Service()
 export class ReportController {
@@ -46,10 +53,10 @@ export class ReportController {
     next: NextFunction,
   ): Promise<void> => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
-    const { pId } = req.params;
+    const { pageId } = req.params;
 
     try {
-      const validatedBody = await itemReportsReadValidator({ pId });
+      const validatedBody = await itemReportsReadValidator({ pageId });
       const itemReports = await this.reportService.itemReportsRead(validatedBody, decodedToken);
       res
         .json({
@@ -68,15 +75,41 @@ export class ReportController {
     next: NextFunction,
   ): Promise<void> => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
-    const { itemId } = req.params;
+    const { itemId, pageId } = req.params;
+    let { isApproved } = req.query as Partial<ItemReportAdminReadRequest>;
+    const { isControlled } = req.query as Partial<ItemReportAdminReadRequest>;
+
+    // isControlled = isControlled ?? false;
+    isApproved = isApproved ?? null;
+
+    if (isApproved === 'true') {
+      isApproved = true;
+    }
+    if (isApproved === 'false') {
+      isApproved = false;
+    }
+
+    const validationParams: any = {
+      itemId,
+      pageId,
+    };
+
+    if (isControlled) {
+      validationParams.isControlled = isControlled;
+    }
 
     try {
-      const validatedBody = await itemReportAdminReadValidator({ itemId });
-      const item = await this.reportService.itemReportAdminRead(validatedBody, decodedToken);
+      const validatedBody = (await itemReportAdminReadValidator(
+        validationParams,
+      )) as ItemReportAdminReadRequest;
+      const itemReports = await this.reportService.itemReportAdminRead(
+        { ...validatedBody, isApproved },
+        decodedToken,
+      );
       res
         .json({
           message: 'Item fetched',
-          item,
+          itemReports,
         })
         .status(HttpStatus.OK);
     } catch (err) {
@@ -106,8 +139,118 @@ export class ReportController {
     try {
       const validatedBody = await itemReportInspectValidator(itemReportInspectRequest);
       const itemId = await this.reportService.itemReportInspect(validatedBody, decodedToken);
+      res.json({ message: 'Item Report Successfully Completed', itemId }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // Comment Report
+  commentReportRead = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const commentReportReadRequest = req.body as CommentReportReadRequest;
+
+    try {
+      const validatedBody = await commentReportReadValidator(commentReportReadRequest);
+
+      const commentReport = await this.reportService.commentReportRead(validatedBody, decodedToken);
       res
-        .json({ message: 'Item Report Successfully Completed', itemId })
+        .json({
+          message: commentReport ? 'Comment Report Fetched' : 'Comment Report Not Found',
+          commentReport,
+        })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentReportsRead = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { pageId } = req.params;
+
+    try {
+      const validatedBody = await itemReportsReadValidator({ pageId });
+      const commentReports = await this.reportService.commentReportsRead(
+        validatedBody,
+        decodedToken,
+      );
+      res
+        .json({
+          message:
+            commentReports.length !== 0 ? 'Comment Reports Fetched' : 'Comment Reports Not Found',
+          commentReports,
+        })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentReportAdminRead = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { commentId, pageId } = req.params;
+    let { isApproved } = req.query as Partial<CommentReportAdminReadRequest>;
+    const { isControlled } = req.query as Partial<CommentReportAdminReadRequest>;
+
+    isApproved = isApproved ?? null;
+
+    if (isApproved === 'true') {
+      isApproved = true;
+    }
+    if (isApproved === 'false') {
+      isApproved = false;
+    }
+
+    const validationParams: any = {
+      commentId,
+      pageId,
+    };
+
+    if (isControlled) {
+      validationParams.isControlled = isControlled;
+    }
+
+    try {
+      const validatedBody = (await commentReportAdminReadValidator(
+        validationParams,
+      )) as CommentReportAdminReadRequest;
+      const commentReports = await this.reportService.commentReportAdminRead(
+        { ...validatedBody, isApproved },
+        decodedToken,
+      );
+      res
+        .json({
+          message: 'Comment fetched',
+          commentReports,
+        })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentReportCreate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const commentReportCreateRequest = req.body as CommentReportCreateRequest;
+
+    try {
+      const validatedBody = await commentReportCreateValidator(commentReportCreateRequest);
+      const reportId = await this.reportService.commentReportCreate(validatedBody, decodedToken);
+      res
+        .json({ message: 'Comment Report Successfully Completed', commentReport: reportId })
         .status(HttpStatus.OK);
     } catch (err) {
       next(err);

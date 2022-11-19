@@ -5,7 +5,11 @@ import { RefreshTokenRequest } from '../../api/rest/v1/controllers/Auth/Auth.typ
 import {
   ItemReportCreateRequest,
   ItemReportReadRequest,
+  ItemReportAdminReadRequest,
   ItemReportInspectRequest,
+  CommentReportCreateRequest,
+  CommentReportReadRequest,
+  CommentReportAdminReadRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import { CustomError } from '../../util/CustomError';
 import User from '../../db/entities/userRelated/User';
@@ -15,6 +19,8 @@ import Influencer from '../../db/entities/influencerRelated/Influencer';
 import ItemReport from '../../db/entities/itemRelated/ItemReport';
 import Admin from '../../db/entities/adminRelated/Admin';
 import { config } from '../../config/config';
+import Comment from '../../db/entities/itemRelated/Comment';
+import CommentReport from '../../db/entities/itemRelated/CommentReport';
 
 @Service()
 export class ReportService {
@@ -26,6 +32,7 @@ export class ReportService {
     this.reportCRUDService = Container.get(ReportCRUDService);
   }
 
+  // Item Report
   itemReportRead = async (
     body: ItemReportReadRequest,
     decodedToken: RefreshTokenRequest,
@@ -65,7 +72,7 @@ export class ReportService {
   };
 
   itemReportsRead = async (
-    body: { pId: number },
+    body: { pageId: number },
     decodedToken: RefreshTokenRequest,
   ): Promise<ItemReport[]> => {
     const admin = await this.dataSource.getRepository(Admin).findOne({
@@ -79,11 +86,11 @@ export class ReportService {
     const itemReports = await this.dataSource
       .getRepository(ItemReport)
       .createQueryBuilder('item_report')
+      .select('item_report.id')
+      .distinctOn(['item_report.item_id'])
       .leftJoinAndSelect('item_report.item', 'item')
-      .leftJoinAndSelect('item_report.admin', 'admin')
-      .leftJoinAndSelect('item_report.reporterUser', 'user.id')
-      .leftJoinAndSelect('item_report.reporterInfluencer', 'influencer')
-      .offset(config.adminPaginationLimit * (body.pId - 1))
+      .leftJoinAndSelect('item.images', 'item_images')
+      .offset(config.adminPaginationLimit * (body.pageId - 1))
       .limit(config.adminPaginationLimit)
       .getMany();
 
@@ -91,9 +98,9 @@ export class ReportService {
   };
 
   itemReportAdminRead = async (
-    body: { itemId: string },
+    body: ItemReportAdminReadRequest,
     decodedToken: RefreshTokenRequest,
-  ): Promise<ItemReport | null> => {
+  ) => {
     const admin = await this.dataSource.getRepository(Admin).findOne({
       where: { id: decodedToken.id },
     });
@@ -101,19 +108,111 @@ export class ReportService {
     if (!admin) {
       throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
     }
+    let itemReports;
+    if (body.isControlled === undefined) {
+      if (body.isApproved !== null) {
+        itemReports = await this.dataSource
+          .getRepository(ItemReport)
+          .createQueryBuilder('item_report')
+          .select([
+            'item_report.id',
+            'item_report.report',
+            'item_report.isReportControlled',
+            'item_report.isApproved',
+            'item_report.createdAt',
+            'item_report.updatedAt',
+          ])
+          .where('item_report.item_id = :itemId', { itemId: body.itemId })
+          .leftJoinAndSelect('item_report.item', 'item')
+          .leftJoinAndSelect('item.images', 'item_images')
+          .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('item_report.admin', 'admin')
+          .andWhere('item_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      } else if (body.isApproved === null) {
+      itemReports = await this.dataSource
+          .getRepository(ItemReport)
+          .createQueryBuilder('item_report')
+          .select([
+            'item_report.id',
+            'item_report.report',
+            'item_report.isReportControlled',
+            'item_report.isApproved',
+            'item_report.createdAt',
+            'item_report.updatedAt',
+          ])
+          .where('item_report.item_id = :itemId', { itemId: body.itemId })
+          .leftJoinAndSelect('item_report.item', 'item')
+          .leftJoinAndSelect('item.images', 'item_images')
+          .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('item_report.admin', 'admin')
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      }
+    } else {
+      // eslint-disable-next-line no-lonely-if
+      if (body.isApproved !== null) {
+        itemReports = await this.dataSource
+          .getRepository(ItemReport)
+          .createQueryBuilder('item_report')
+          .select([
+            'item_report.id',
+            'item_report.report',
+            'item_report.isReportControlled',
+            'item_report.isApproved',
+            'item_report.createdAt',
+            'item_report.updatedAt',
+          ])
+          .where('item_report.item_id = :itemId', { itemId: body.itemId })
+          .andWhere('item_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .andWhere('item_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
+          .leftJoinAndSelect('item_report.item', 'item')
+          .leftJoinAndSelect('item.images', 'item_images')
+          .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('item_report.admin', 'admin')
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      } else if (body.isApproved === null) {
+      itemReports = await this.dataSource
+          .getRepository(ItemReport)
+          .createQueryBuilder('item_report')
+          .select([
+            'item_report.id',
+            'item_report.report',
+            'item_report.isReportControlled',
+            'item_report.isApproved',
+            'item_report.createdAt',
+            'item_report.updatedAt',
+          ])
+          .where('item_report.item_id = :itemId', { itemId: body.itemId })
+          .leftJoinAndSelect('item_report.item', 'item')
+          .leftJoinAndSelect('item.images', 'item_images')
+          .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('item_report.admin', 'admin')
+          .andWhere('item_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+        }
+    }
 
-    const item = await this.dataSource.getRepository(Item).findOne({
-      where: { id: body.itemId },
-      relations: {
-        itemReports: {
-          reporterUser: true,
-          reporterInfluencer: true,
-        },
-        images: true,
-      },
-    });
-
-    return item;
+    return itemReports;
   };
 
   itemReportCreate = async (
@@ -151,6 +250,9 @@ export class ReportService {
 
     const item = await this.dataSource.getRepository(Item).findOne({
       where: { id: body.itemId },
+      relations: {
+        itemReports: true,
+      },
     });
     if (!item) {
       throw new CustomError('Item Not Found', HttpStatus.NOT_FOUND);
@@ -185,6 +287,204 @@ export class ReportService {
     }
 
     const reportId = await this.reportCRUDService.itemReportInspect(body, item, admin);
+    return reportId;
+  };
+
+  // Comment Report
+  commentReportRead = async (
+    body: CommentReportReadRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<Partial<CommentReport> | undefined> => {
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: { id: body.commentId },
+    });
+    if (!comment) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    let client: User | Influencer;
+    if (body.isReaderUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentReports: {
+            reportedComment: true,
+            admin: true,
+          },
+        },
+      })) as User;
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const commentReport = await this.reportCRUDService.commentReportRead(body, client, comment);
+    return commentReport;
+  };
+
+  commentReportsRead = async (
+    body: { pageId: number },
+    decodedToken: RefreshTokenRequest,
+  ): Promise<CommentReport[]> => {
+    const admin = await this.dataSource.getRepository(Admin).findOne({
+      where: { id: decodedToken.id },
+    });
+
+    if (!admin) {
+      throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const commentReports = await this.dataSource
+      .getRepository(CommentReport)
+      .createQueryBuilder('comment_report')
+      .select('comment_report.id')
+      .distinctOn(['comment_report.reported_comment_id'])
+      .leftJoinAndSelect('comment_report.reportedComment', 'comment')
+      .leftJoinAndSelect('comment.commentImages', 'comment_images')
+      .offset(config.adminPaginationLimit * (body.pageId - 1))
+      .limit(config.adminPaginationLimit)
+      .getMany();
+
+    return commentReports;
+  };
+
+  commentReportAdminRead = async (
+    body: CommentReportAdminReadRequest,
+    decodedToken: RefreshTokenRequest,
+  ) => {
+    const admin = await this.dataSource.getRepository(Admin).findOne({
+      where: { id: decodedToken.id },
+    });
+
+    if (!admin) {
+      throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
+    }
+    let commentReports;
+    if (body.isControlled === undefined) {
+      if (body.isApproved !== null) {
+        commentReports = await this.dataSource
+          .getRepository(CommentReport)
+          .createQueryBuilder('comment_report')
+          .where('comment_report.reported_comment_id = :commentId', { commentId: body.commentId })
+          .leftJoinAndSelect('comment_report.reportedComment', 'comment')
+          .leftJoinAndSelect('comment.commentImages', 'comment_images')
+          .leftJoinAndSelect('comment_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('comment_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('comment_report.admin', 'admin')
+          .andWhere('comment_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      } else if (body.isApproved === null) {
+      commentReports = await this.dataSource
+          .getRepository(CommentReport)
+          .createQueryBuilder('comment_report')
+          .where('comment_report.reported_comment_id = :commentId', { commentId: body.commentId })
+          .leftJoinAndSelect('comment_report.reportedComment', 'comment')
+          .leftJoinAndSelect('comment.commentImages', 'comment_images')
+          .leftJoinAndSelect('comment_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('comment_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('comment_report.admin', 'admin')
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      }
+    } else {
+      // eslint-disable-next-line no-lonely-if
+      if (body.isApproved !== null) {
+        commentReports = await this.dataSource
+          .getRepository(CommentReport)
+          .createQueryBuilder('comment_report')
+          .where('comment_report.reported_comment_id = :commentId', { commentId: body.commentId })
+          .andWhere('comment_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .andWhere('comment_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
+          .leftJoinAndSelect('comment_report.reportedComment', 'comment')
+          .leftJoinAndSelect('comment.commentImages', 'comment_images')
+          .leftJoinAndSelect('comment_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('comment_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('comment_report.admin', 'admin')
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      } else if (body.isApproved === null) {
+      commentReports = await this.dataSource
+          .getRepository(CommentReport)
+          .createQueryBuilder('comment_report')
+          .where('comment_report.reported_comment_id = :commentId', { commentId: body.commentId })
+          .leftJoinAndSelect('comment_report.reportedComment', 'comment')
+          .leftJoinAndSelect('comment.commentImages', 'comment_images')
+          .leftJoinAndSelect('comment_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('comment_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('comment_report.admin', 'admin')
+          .andWhere('comment_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+        }
+    }
+
+    return commentReports;
+  };
+
+  commentReportCreate = async (
+    body: CommentReportCreateRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<string> => {
+    // Find the user who is reporting the comment
+    let client: User | Influencer;
+    if (body.isReporterUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentReports: {
+            reportedComment: true,
+          },
+        },
+      })) as User;
+
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentReports: {
+            reportedComment: true,
+          },
+        },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: { id: body.commentId },
+      relations: {
+        commentReports: true,
+      },
+    });
+    if (!comment) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const reportId = await this.reportCRUDService.createCommentReport(body, client, comment);
     return reportId;
   };
 }

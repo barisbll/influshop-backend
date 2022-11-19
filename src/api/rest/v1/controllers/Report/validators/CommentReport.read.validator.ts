@@ -3,15 +3,13 @@ import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
-export const itemReportAdminReadValidator = async (reportReadRequest: {
-  itemId: string;
-  pageId: string;
-  isControlled?: string | boolean;
+export const commentReportReadValidator = async (reportReadRequest: {
+  commentId: string;
+  isReaderUser: boolean;
 }) => {
   const schema = yup.object().shape({
-    itemId: yup.string().uuid().required(),
-    pageId: yup.number().min(1).required(),
-    isControlled: yup.boolean().optional(),
+    commentId: yup.string().uuid().required(),
+    isReaderUser: yup.boolean().required(),
   });
 
   try {

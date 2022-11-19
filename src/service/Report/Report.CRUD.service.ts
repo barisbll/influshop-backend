@@ -6,6 +6,8 @@ import {
   ItemReportCreateRequest,
   ItemReportReadRequest,
   ItemReportInspectRequest,
+  CommentReportCreateRequest,
+  CommentReportReadRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
@@ -15,6 +17,8 @@ import { CustomError } from '../../util/CustomError';
 import Admin from '../../db/entities/adminRelated/Admin';
 import logger from '../../config/logger';
 import { ItemService } from '../Item.service';
+import Comment from '../../db/entities/itemRelated/Comment';
+import CommentReport from '../../db/entities/itemRelated/CommentReport';
 
 @Service()
 export class ReportCRUDService {
@@ -171,5 +175,106 @@ export class ReportCRUDService {
       logger.error(error);
       throw new CustomError('Item Delete Failed', HttpStatus.INTERNAL_SERVER_ERROR, error);
     }
+  };
+
+  // Comment Report
+  commentReportRead = async (
+    body: CommentReportReadRequest,
+    client: User | Influencer,
+    comment: Comment,
+  ): Promise<Partial<CommentReport> | undefined> => {
+    // Find the comment report inside the client
+    const commentReport = (client?.commentReports as CommentReport[]).find(
+      (clientCommentReport) => (clientCommentReport.reportedComment as Comment).id === comment.id,
+    );
+    if (!commentReport) {
+      return undefined;
+    }
+    const { id, report, isReportControlled, admin, updatedAt } = commentReport as CommentReport;
+
+    return { id, report, isReportControlled, admin, updatedAt };
+  };
+
+  createCommentReport = async (
+    body: CommentReportCreateRequest,
+    oldClient: User | Influencer,
+    oldComment: Comment,
+  ): Promise<string> => {
+    const comment = clone(oldComment);
+    const client = clone(oldClient);
+    if (body.isReport) {
+      // Create or update CommentReport
+      const existingCommentReport = (client?.commentReports as CommentReport[]).find(
+        (clientsCommentReport) =>
+          (clientsCommentReport.reportedComment as Comment).id === comment.id,
+      );
+      if (existingCommentReport) {
+        // Update existing CommentReport
+        if (existingCommentReport.report === body.reason) {
+          throw new CustomError(
+            'Comment Report Cannot Be The Same With The Existing One',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        existingCommentReport.report = body.reason;
+        const updatedReport = await this.dataSource
+          .getRepository(CommentReport)
+          .save(existingCommentReport);
+        return updatedReport.id as string;
+      }
+      // Create new CommentReport
+      const commentReport = new CommentReport();
+      if (body.isReporterUser) {
+        commentReport.reporterUser = client as User;
+      } else {
+        commentReport.reporterInfluencer = client as Influencer;
+      }
+
+      commentReport.reportedComment = comment;
+      commentReport.report = body.reason;
+      const createdCommentReport = await this.dataSource
+        .getRepository(CommentReport)
+        .save(commentReport);
+
+      comment.commentReports = [...(comment.commentReports || []), commentReport];
+      await this.dataSource.getRepository(Comment).save(comment);
+
+      client.commentReports = [...(client.commentReports || []), commentReport];
+      if (body.isReporterUser) {
+        await this.dataSource.getRepository(User).save(client);
+      } else {
+        await this.dataSource.getRepository(Influencer).save(client);
+      }
+
+      return createdCommentReport.id as string;
+    }
+    // Delete CommentReport
+    const existingCommentReport = (client?.commentReports as CommentReport[]).find(
+      (clientsCommentReport) => (clientsCommentReport.reportedComment as Comment).id === comment.id,
+    );
+
+    if (!existingCommentReport) {
+      throw new CustomError('Comment Previously Not Reported', HttpStatus.BAD_REQUEST);
+    }
+
+    comment.commentReports = (comment.commentReports || []).filter(
+      (commentReport) => commentReport.id !== existingCommentReport.id,
+    );
+    await this.dataSource.getRepository(Comment).save(comment);
+
+    client.commentReports = (client.commentReports || []).filter(
+      (commentReport) => commentReport.id !== existingCommentReport.id,
+    );
+    if (body.isReporterUser) {
+      await this.dataSource.getRepository(User).save(client);
+    } else {
+      await this.dataSource.getRepository(Influencer).save(client);
+    }
+
+    const deletedCommentReport = await this.dataSource
+      .getRepository(CommentReport)
+      .remove(existingCommentReport);
+    return deletedCommentReport.id as string;
   };
 }

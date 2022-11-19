@@ -39,6 +39,12 @@ export default class CommentReport {
   })
   isReportControlled?: boolean;
 
+  @Column({
+    nullable: true,
+    default: null,
+  })
+  isApproved?: boolean;
+
   @CreateDateColumn()
   createdAt?: Date;
 
