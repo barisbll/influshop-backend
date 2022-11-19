@@ -131,9 +131,7 @@ export class ReportService {
     if (!admin) {
       throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
     }
-
     let itemReports;
-
     if (body.isControlled === undefined) {
       if (body.isApproved !== null) {
         itemReports = await this.dataSource
@@ -153,13 +151,13 @@ export class ReportService {
           .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
           .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
           .leftJoinAndSelect('item_report.admin', 'admin')
-          .where('item_report.isApproved = :isApproved', {
+          .andWhere('item_report.isApproved = :isApproved', {
             isApproved: body.isApproved,
           })
           .offset(config.adminPaginationLimit * (body.pageId - 1))
           .limit(config.adminPaginationLimit)
           .getMany();
-      }
+      } else if (body.isApproved === null) {
       itemReports = await this.dataSource
           .getRepository(ItemReport)
           .createQueryBuilder('item_report')
@@ -180,7 +178,9 @@ export class ReportService {
           .offset(config.adminPaginationLimit * (body.pageId - 1))
           .limit(config.adminPaginationLimit)
           .getMany();
+      }
     } else {
+      // eslint-disable-next-line no-lonely-if
       if (body.isApproved !== null) {
         itemReports = await this.dataSource
           .getRepository(ItemReport)
@@ -194,21 +194,21 @@ export class ReportService {
             'item_report.updatedAt',
           ])
           .where('item_report.item_id = :itemId', { itemId: body.itemId })
+          .andWhere('item_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .andWhere('item_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
           .leftJoinAndSelect('item_report.item', 'item')
           .leftJoinAndSelect('item.images', 'item_images')
           .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
           .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
           .leftJoinAndSelect('item_report.admin', 'admin')
-          .where('item_report.isReportControlled = :isReportControlled', {
-            isReportControlled: body.isControlled,
-          })
-          .where('item_report.isApproved = :isApproved', {
-            isApproved: body.isApproved,
-          })
           .offset(config.adminPaginationLimit * (body.pageId - 1))
           .limit(config.adminPaginationLimit)
           .getMany();
-      }
+      } else if (body.isApproved === null) {
       itemReports = await this.dataSource
           .getRepository(ItemReport)
           .createQueryBuilder('item_report')
@@ -226,12 +226,13 @@ export class ReportService {
           .leftJoinAndSelect('item_report.reporterUser', 'reporter_user')
           .leftJoinAndSelect('item_report.reporterInfluencer', 'reporter_influencer')
           .leftJoinAndSelect('item_report.admin', 'admin')
-          .where('item_report.isReportControlled = :isReportControlled', {
+          .andWhere('item_report.isReportControlled = :isReportControlled', {
             isReportControlled: body.isControlled,
           })
           .offset(config.adminPaginationLimit * (body.pageId - 1))
           .limit(config.adminPaginationLimit)
           .getMany();
+        }
     }
 
     return itemReports;
