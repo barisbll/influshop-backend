@@ -38,3 +38,10 @@ export type CommentReportReadRequest = {
     commentId: string;
     isReaderUser: boolean;
 };
+
+export type CommentReportAdminReadRequest = {
+    commentId: string;
+    pageId: number;
+    isControlled?: boolean;
+    isApproved?: boolean | null | string;
+};

@@ -22,6 +22,10 @@ export const createRouter = () => {
   // Comment Reports
   router.post('/comment/read', isAuth, reportController.commentReportRead);
 
+  router.get('/comments/read/:pageId', isAuth, reportController.commentReportsRead);
+
+  router.get('/comment/read/:commentId/:pageId', isAuth, reportController.commentReportAdminRead);
+
   router.post('/comment/create', isAuth, reportController.commentReportCreate);
 
   return router;
