@@ -8,6 +8,7 @@ import { itemReportCreateValidator } from './validators/ItemReport.create.valida
 import {
   ItemReportCreateRequest,
   ItemReportReadRequest,
+  ItemReportAdminReadRequest,
   ItemReportInspectRequest,
 } from './Report.type';
 import { itemReportReadValidator } from './validators/ItemReport.read.validator';
@@ -46,10 +47,10 @@ export class ReportController {
     next: NextFunction,
   ): Promise<void> => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
-    const { pId } = req.params;
+    const { pageId } = req.params;
 
     try {
-      const validatedBody = await itemReportsReadValidator({ pId });
+      const validatedBody = await itemReportsReadValidator({ pageId });
       const itemReports = await this.reportService.itemReportsRead(validatedBody, decodedToken);
       res
         .json({
@@ -68,15 +69,40 @@ export class ReportController {
     next: NextFunction,
   ): Promise<void> => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
-    const { itemId } = req.params;
+    const { itemId, pageId } = req.params;
+    let { isControlled, isApproved } = req.query as Partial<ItemReportAdminReadRequest>;
+
+    // isControlled = isControlled ?? false;
+    isApproved = isApproved ?? null;
+
+    if (isApproved === 'true') {
+      isApproved = true;
+    }
+    if (isApproved === 'false') {
+      isApproved = false;
+    }
+
+    const validationParams: any = {
+      itemId,
+      pageId,
+    };
+
+    if (isControlled) {
+      validationParams.isControlled = isControlled;
+    }
 
     try {
-      const validatedBody = await itemReportAdminReadValidator({ itemId });
-      const item = await this.reportService.itemReportAdminRead(validatedBody, decodedToken);
+      const validatedBody = (await itemReportAdminReadValidator(
+        validationParams,
+      )) as ItemReportAdminReadRequest;
+      const itemReports = await this.reportService.itemReportAdminRead(
+        { ...validatedBody, isApproved },
+        decodedToken,
+      );
       res
         .json({
           message: 'Item fetched',
-          item,
+          itemReports,
         })
         .status(HttpStatus.OK);
     } catch (err) {
@@ -106,9 +132,7 @@ export class ReportController {
     try {
       const validatedBody = await itemReportInspectValidator(itemReportInspectRequest);
       const itemId = await this.reportService.itemReportInspect(validatedBody, decodedToken);
-      res
-        .json({ message: 'Item Report Successfully Completed', itemId })
-        .status(HttpStatus.OK);
+      res.json({ message: 'Item Report Successfully Completed', itemId }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

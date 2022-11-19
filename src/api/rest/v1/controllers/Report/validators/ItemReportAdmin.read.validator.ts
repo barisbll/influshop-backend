@@ -3,9 +3,15 @@ import * as yup from 'yup';
 import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
-export const itemReportAdminReadValidator = async (reportReadRequest: { itemId: string}) => {
+export const itemReportAdminReadValidator = async (reportReadRequest: {
+  itemId: string;
+  pageId: string;
+  isControlled?: string | boolean;
+}) => {
   const schema = yup.object().shape({
     itemId: yup.string().uuid().required(),
+    pageId: yup.number().min(1).required(),
+    isControlled: yup.boolean().optional(),
   });
 
   try {

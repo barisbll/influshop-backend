@@ -16,3 +16,10 @@ export type ItemReportInspectRequest = {
     itemId: string;
     isApprove: boolean;
 };
+
+export type ItemReportAdminReadRequest = {
+    itemId: string;
+    pageId: number;
+    isControlled?: boolean;
+    isApproved?: boolean | null | string;
+};
