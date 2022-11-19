@@ -70,7 +70,8 @@ export class ReportController {
   ): Promise<void> => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
     const { itemId, pageId } = req.params;
-    let { isControlled, isApproved } = req.query as Partial<ItemReportAdminReadRequest>;
+    let { isApproved } = req.query as Partial<ItemReportAdminReadRequest>;
+    const { isControlled } = req.query as Partial<ItemReportAdminReadRequest>;
 
     // isControlled = isControlled ?? false;
     isApproved = isApproved ?? null;
