@@ -7,6 +7,8 @@ import {
   ItemReportReadRequest,
   ItemReportAdminReadRequest,
   ItemReportInspectRequest,
+  CommentReportCreateRequest,
+  CommentReportReadRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import { CustomError } from '../../util/CustomError';
 import User from '../../db/entities/userRelated/User';
@@ -16,6 +18,8 @@ import Influencer from '../../db/entities/influencerRelated/Influencer';
 import ItemReport from '../../db/entities/itemRelated/ItemReport';
 import Admin from '../../db/entities/adminRelated/Admin';
 import { config } from '../../config/config';
+import Comment from '../../db/entities/itemRelated/Comment';
+import CommentReport from '../../db/entities/itemRelated/CommentReport';
 
 @Service()
 export class ReportService {
@@ -27,6 +31,7 @@ export class ReportService {
     this.reportCRUDService = Container.get(ReportCRUDService);
   }
 
+  // Item Report
   itemReportRead = async (
     body: ItemReportReadRequest,
     decodedToken: RefreshTokenRequest,
@@ -81,7 +86,7 @@ export class ReportService {
     const itemReports = await this.dataSource
       .getRepository(ItemReport)
       .createQueryBuilder('item_report')
-      .select('item_report.id')
+      // .select('item_report.id')
       .distinctOn(['item_report.item_id'])
       .leftJoinAndSelect('item_report.item', 'item')
       .leftJoinAndSelect('item.images', 'item_images')
@@ -92,34 +97,6 @@ export class ReportService {
     return itemReports;
   };
 
-  // itemReportAdminRead = async (
-  //   body: { itemId: string },
-  //   decodedToken: RefreshTokenRequest,
-  // ): Promise<ItemReport | null> => {
-  //   const admin = await this.dataSource.getRepository(Admin).findOne({
-  //     where: { id: decodedToken.id },
-  //   });
-
-  //   if (!admin) {
-  //     throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
-  //   }
-
-  //   const item = await this.dataSource.getRepository(Item).findOne({
-  //     where: { id: body.itemId },
-  //     relations: {
-  //       itemReports: {
-  //         reporterUser: true,
-  //         reporterInfluencer: true,
-  //         admin: true,
-  //       },
-  //       images: true,
-  //     },
-  //   });
-
-  //   return item;
-  // };
-
-  // version 2
   itemReportAdminRead = async (
     body: ItemReportAdminReadRequest,
     decodedToken: RefreshTokenRequest,
@@ -273,6 +250,9 @@ export class ReportService {
 
     const item = await this.dataSource.getRepository(Item).findOne({
       where: { id: body.itemId },
+      relations: {
+        itemReports: true,
+      },
     });
     if (!item) {
       throw new CustomError('Item Not Found', HttpStatus.NOT_FOUND);
@@ -307,6 +287,92 @@ export class ReportService {
     }
 
     const reportId = await this.reportCRUDService.itemReportInspect(body, item, admin);
+    return reportId;
+  };
+
+  // Comment Report
+  commentReportRead = async (
+    body: CommentReportReadRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<Partial<CommentReport> | undefined> => {
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: { id: body.commentId },
+    });
+    if (!comment) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    let client: User | Influencer;
+    if (body.isReaderUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentReports: {
+            reportedComment: true,
+            admin: true,
+          },
+        },
+      })) as User;
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const commentReport = await this.reportCRUDService.commentReportRead(body, client, comment);
+    return commentReport;
+  };
+
+  commentReportCreate = async (
+    body: CommentReportCreateRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<string> => {
+    // Find the user who is reporting the comment
+    let client: User | Influencer;
+    if (body.isReporterUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentReports: {
+            reportedComment: true,
+          },
+        },
+      })) as User;
+
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          commentReports: {
+            reportedComment: true,
+          },
+        },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: { id: body.commentId },
+      relations: {
+        commentReports: true,
+      },
+    });
+    if (!comment) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const reportId = await this.reportCRUDService.createCommentReport(body, client, comment);
     return reportId;
   };
 }
