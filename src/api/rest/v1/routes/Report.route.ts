@@ -28,5 +28,7 @@ export const createRouter = () => {
 
   router.post('/comment/create', isAuth, reportController.commentReportCreate);
 
+  router.post('/comment/inspect', isAuth, reportController.commentReportInspect);
+
   return router;
 };

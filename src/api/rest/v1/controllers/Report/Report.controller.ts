@@ -13,6 +13,7 @@ import {
   CommentReportCreateRequest,
   CommentReportReadRequest,
   CommentReportAdminReadRequest,
+  CommentReportInspectRequest,
 } from './Report.type';
 import { itemReportReadValidator } from './validators/ItemReport.read.validator';
 import { itemReportsReadValidator } from './validators/ItemReports.read.validator';
@@ -21,12 +22,14 @@ import { itemReportInspectValidator } from './validators/ItemReport.inspect.vali
 import { commentReportCreateValidator } from './validators/CommentReport.create.validator';
 import { commentReportReadValidator } from './validators/CommentReport.read.validator';
 import { commentReportAdminReadValidator } from './validators/CommentReportAdmin.read.validator';
+import { commentReportInspectValidator } from './validators/CommentReport.inspect.validator';
 
 @Service()
 export class ReportController {
   // eslint-disable-next-line no-unused-vars
   constructor(private readonly reportService: ReportService) {}
 
+  // Item Reports
   itemReportRead = async (
     req: ExtendedRequest,
     res: Response,
@@ -252,6 +255,19 @@ export class ReportController {
       res
         .json({ message: 'Comment Report Successfully Completed', commentReport: reportId })
         .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  commentReportInspect = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const commentReportInspectRequest = req.body as CommentReportInspectRequest;
+
+    try {
+      const validatedBody = await commentReportInspectValidator(commentReportInspectRequest);
+      const commentId = await this.reportService.commentReportInspect(validatedBody, decodedToken);
+      res.json({ message: 'Comment Report Successfully Completed', commentId }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

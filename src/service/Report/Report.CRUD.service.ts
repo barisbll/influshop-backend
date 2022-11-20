@@ -8,6 +8,7 @@ import {
   ItemReportInspectRequest,
   CommentReportCreateRequest,
   CommentReportReadRequest,
+  CommentReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
@@ -19,15 +20,18 @@ import logger from '../../config/logger';
 import { ItemService } from '../Item.service';
 import Comment from '../../db/entities/itemRelated/Comment';
 import CommentReport from '../../db/entities/itemRelated/CommentReport';
+import { CommentCRUDService } from '../CommentCRUD.service';
 
 @Service()
 export class ReportCRUDService {
   private dataSource: DataSource;
   private itemService: ItemService;
+  private commentCRUDService: CommentCRUDService;
 
   constructor() {
     this.dataSource = Container.get('dataSource');
     this.itemService = Container.get(ItemService);
+    this.commentCRUDService = Container.get(CommentCRUDService);
   }
 
   itemReportRead = async (
@@ -185,7 +189,7 @@ export class ReportCRUDService {
   ): Promise<Partial<CommentReport> | undefined> => {
     // Find the comment report inside the client
     const commentReport = (client?.commentReports as CommentReport[]).find(
-      (clientCommentReport) => (clientCommentReport.reportedComment as Comment).id === comment.id,
+      (clientCommentReport) => (clientCommentReport.reportedComment as Comment)?.id === comment?.id,
     );
     if (!commentReport) {
       return undefined;
@@ -206,7 +210,7 @@ export class ReportCRUDService {
       // Create or update CommentReport
       const existingCommentReport = (client?.commentReports as CommentReport[]).find(
         (clientsCommentReport) =>
-          (clientsCommentReport.reportedComment as Comment).id === comment.id,
+          (clientsCommentReport.reportedComment as Comment)?.id === comment?.id,
       );
       if (existingCommentReport) {
         // Update existing CommentReport
@@ -276,5 +280,60 @@ export class ReportCRUDService {
       .getRepository(CommentReport)
       .remove(existingCommentReport);
     return deletedCommentReport.id as string;
+  };
+
+  commentReportInspect = async (
+    body: CommentReportInspectRequest,
+    oldComment: Comment,
+    oldAdmin: Admin,
+  ): Promise<string> => {
+    const comment = clone(oldComment);
+    const admin = clone(oldAdmin);
+
+    if (body.isApprove) {
+      comment.commentReports?.forEach(async (oldCommentReport) => {
+        const commentReport = clone(oldCommentReport);
+        commentReport.isReportControlled = true;
+        commentReport.admin = admin;
+        commentReport.isApproved = true;
+        await this.dataSource.getRepository(CommentReport).save(commentReport);
+      });
+      return comment.id as string;
+    }
+    // delete item
+    comment.commentReports?.forEach(async (oldCommentReport) => {
+      const commentReport = clone(oldCommentReport);
+      commentReport.isReportControlled = true;
+      commentReport.admin = admin;
+      commentReport.isApproved = false;
+      await this.dataSource.getRepository(CommentReport).save(commentReport);
+    });
+
+    try {
+      const user = await this.dataSource.getRepository(User).findOne({
+        where: {
+          id: (comment.user as User).id,
+        },
+        relations: {
+          comments: true,
+          commentLikes: true,
+        },
+      });
+
+      if (!user) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+
+      user.comments = user?.comments?.filter((userComment) => userComment.id !== comment.id);
+
+      await this.dataSource.getRepository(User).save(user);
+
+      this.commentCRUDService.commentDelete(comment, user);
+
+      return comment.id as string;
+    } catch (error) {
+      logger.error(error);
+      throw new CustomError('Comment Delete Failed', HttpStatus.INTERNAL_SERVER_ERROR, error);
+    }
   };
 }
