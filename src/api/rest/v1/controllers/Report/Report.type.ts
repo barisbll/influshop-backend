@@ -45,3 +45,8 @@ export type CommentReportAdminReadRequest = {
     isControlled?: boolean;
     isApproved?: boolean | null | string;
 };
+
+export type CommentReportInspectRequest = {
+    commentId: string;
+    isApprove: boolean;
+};

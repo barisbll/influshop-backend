@@ -10,6 +10,7 @@ import {
   CommentReportCreateRequest,
   CommentReportReadRequest,
   CommentReportAdminReadRequest,
+  CommentReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import { CustomError } from '../../util/CustomError';
 import User from '../../db/entities/userRelated/User';
@@ -485,6 +486,39 @@ export class ReportService {
     }
 
     const reportId = await this.reportCRUDService.createCommentReport(body, client, comment);
+    return reportId;
+  };
+
+  commentReportInspect = async (
+    body: CommentReportInspectRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<string> => {
+    const admin = await this.dataSource.getRepository(Admin).findOne({
+      where: { id: decodedToken.id },
+    });
+
+    if (!admin) {
+      throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: {
+        id: body.commentId,
+      },
+      relations: {
+        commentImages: true,
+        commentLikes: true,
+        commentReports: true,
+        user: true,
+        item: true,
+      },
+    });
+
+    if (!comment) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const reportId = await this.reportCRUDService.commentReportInspect(body, comment, admin);
     return reportId;
   };
 }
