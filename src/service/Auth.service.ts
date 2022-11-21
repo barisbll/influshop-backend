@@ -92,7 +92,7 @@ export class AuthService {
 
   userLogin = async (
     body: LoginRequest,
-  ): Promise<{ token: string; email: string; username: string }> => {
+  ): Promise<{ id: string, token: string; email: string; username: string }> => {
     const user = await this.dataSource
       .getRepository(User)
       .findOne({ where: { email: body.email } });
@@ -109,6 +109,7 @@ export class AuthService {
     }
 
     return {
+      id: user.id as string,
       token: this.createToken(user.id as string, user.email as string),
       email: user.email as string,
       username: user.username as string,
@@ -161,7 +162,7 @@ export class AuthService {
 
   influencerLogin = async (
     body: LoginRequest,
-  ): Promise<{ token: string; email: string; username: string }> => {
+  ): Promise<{ id:string, token: string; email: string; username: string }> => {
     const influencer = await this.dataSource
       .getRepository(Influencer)
       .findOne({ where: { email: body.email } });
@@ -182,6 +183,7 @@ export class AuthService {
     }
 
     return {
+      id: influencer.id as string,
       token: this.createToken(influencer.id as string, influencer.email as string),
       email: influencer.email as string,
       username: influencer.username as string,

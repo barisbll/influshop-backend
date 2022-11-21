@@ -11,6 +11,14 @@ import {
   CommentReportReadRequest,
   CommentReportAdminReadRequest,
   CommentReportInspectRequest,
+  UserReportCreateRequest,
+  UserReportReadRequest,
+  UserReportAdminReadRequest,
+  UserReportInspectRequest,
+  InfluencerReportCreateRequest,
+  InfluencerReportReadRequest,
+  InfluencerReportAdminReadRequest,
+  InfluencerReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import { CustomError } from '../../util/CustomError';
 import User from '../../db/entities/userRelated/User';
@@ -22,6 +30,7 @@ import Admin from '../../db/entities/adminRelated/Admin';
 import { config } from '../../config/config';
 import Comment from '../../db/entities/itemRelated/Comment';
 import CommentReport from '../../db/entities/itemRelated/CommentReport';
+import UserReport from '../../db/entities/userRelated/UserReport';
 
 @Service()
 export class ReportService {
@@ -136,7 +145,7 @@ export class ReportService {
           .limit(config.adminPaginationLimit)
           .getMany();
       } else if (body.isApproved === null) {
-      itemReports = await this.dataSource
+        itemReports = await this.dataSource
           .getRepository(ItemReport)
           .createQueryBuilder('item_report')
           .select([
@@ -187,7 +196,7 @@ export class ReportService {
           .limit(config.adminPaginationLimit)
           .getMany();
       } else if (body.isApproved === null) {
-      itemReports = await this.dataSource
+        itemReports = await this.dataSource
           .getRepository(ItemReport)
           .createQueryBuilder('item_report')
           .select([
@@ -210,7 +219,7 @@ export class ReportService {
           .offset(config.adminPaginationLimit * (body.pageId - 1))
           .limit(config.adminPaginationLimit)
           .getMany();
-        }
+      }
     }
 
     return itemReports;
@@ -386,7 +395,7 @@ export class ReportService {
           .limit(config.adminPaginationLimit)
           .getMany();
       } else if (body.isApproved === null) {
-      commentReports = await this.dataSource
+        commentReports = await this.dataSource
           .getRepository(CommentReport)
           .createQueryBuilder('comment_report')
           .where('comment_report.reported_comment_id = :commentId', { commentId: body.commentId })
@@ -421,7 +430,7 @@ export class ReportService {
           .limit(config.adminPaginationLimit)
           .getMany();
       } else if (body.isApproved === null) {
-      commentReports = await this.dataSource
+        commentReports = await this.dataSource
           .getRepository(CommentReport)
           .createQueryBuilder('comment_report')
           .where('comment_report.reported_comment_id = :commentId', { commentId: body.commentId })
@@ -436,7 +445,7 @@ export class ReportService {
           .offset(config.adminPaginationLimit * (body.pageId - 1))
           .limit(config.adminPaginationLimit)
           .getMany();
-        }
+      }
     }
 
     return commentReports;
@@ -519,6 +528,251 @@ export class ReportService {
     }
 
     const reportId = await this.reportCRUDService.commentReportInspect(body, comment, admin);
+    return reportId;
+  };
+
+  // User Report
+  userReportRead = async (
+    body: UserReportReadRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<Partial<UserReport> | undefined> => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: { id: body.userId },
+    });
+    if (!user) {
+      throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    let client: User | Influencer;
+    if (body.isReaderUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          userReports: {
+            reportedUser: true,
+            admin: true,
+          },
+        },
+      })) as User;
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const userReport = await this.reportCRUDService.userReportRead(body, client, user);
+    return userReport;
+  };
+
+  userReportsRead = async (
+    body: { pageId: number },
+    decodedToken: RefreshTokenRequest,
+  ): Promise<UserReport[]> => {
+    const admin = await this.dataSource.getRepository(Admin).findOne({
+      where: { id: decodedToken.id },
+    });
+
+    if (!admin) {
+      throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const userReports = await this.dataSource
+      .getRepository(UserReport)
+      .createQueryBuilder('user_report')
+      .select('user_report.id')
+      .distinctOn(['user_report.reported_user_id'])
+      .leftJoinAndSelect('user_report.reportedUser', 'user')
+      .offset(config.adminPaginationLimit * (body.pageId - 1))
+      .limit(config.adminPaginationLimit)
+      .getMany();
+
+    return userReports;
+  };
+
+  userReportAdminRead = async (
+    body: UserReportAdminReadRequest,
+    decodedToken: RefreshTokenRequest,
+  ) => {
+    const admin = await this.dataSource.getRepository(Admin).findOne({
+      where: { id: decodedToken.id },
+    });
+
+    if (!admin) {
+      throw new CustomError('Admin Not Found', HttpStatus.NOT_FOUND);
+    }
+    let userReports;
+    if (body.isControlled === undefined) {
+      if (body.isApproved !== null) {
+        userReports = await this.dataSource
+          .getRepository(UserReport)
+          .createQueryBuilder('user_report')
+          .where('user_report.reported_user_id = :userId', { userId: body.userId })
+          .leftJoinAndSelect('user_report.reportedUser', 'user')
+          .leftJoinAndSelect('user_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('user_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('user_report.admin', 'admin')
+          .andWhere('user_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      } else if (body.isApproved === null) {
+        userReports = await this.dataSource
+          .getRepository(UserReport)
+          .createQueryBuilder('user_report')
+          .where('user_report.reported_user_id = :userId', { userId: body.userId })
+          .leftJoinAndSelect('user_report.reportedUser', 'user')
+          .leftJoinAndSelect('user_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('user_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('user_report.admin', 'admin')
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      }
+    } else {
+      // eslint-disable-next-line no-lonely-if
+      if (body.isApproved !== null) {
+        userReports = await this.dataSource
+          .getRepository(UserReport)
+          .createQueryBuilder('user_report')
+          .where('user_report.reported_user_id = :userId', { userId: body.userId })
+          .andWhere('user_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .andWhere('user_report.isApproved = :isApproved', {
+            isApproved: body.isApproved,
+          })
+          .leftJoinAndSelect('user_report.reportedUser', 'user')
+          .leftJoinAndSelect('user_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('user_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('user_report.admin', 'admin')
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      } else if (body.isApproved === null) {
+        userReports = await this.dataSource
+          .getRepository(UserReport)
+          .createQueryBuilder('user_report')
+          .where('user_report.reported_user_id = :userId', { userId: body.userId })
+          .leftJoinAndSelect('user_report.reportedUser', 'user')
+          .leftJoinAndSelect('user_report.reporterUser', 'reporter_user')
+          .leftJoinAndSelect('user_report.reporterInfluencer', 'reporter_influencer')
+          .leftJoinAndSelect('user_report.admin', 'admin')
+          .andWhere('user_report.isReportControlled = :isReportControlled', {
+            isReportControlled: body.isControlled,
+          })
+          .offset(config.adminPaginationLimit * (body.pageId - 1))
+          .limit(config.adminPaginationLimit)
+          .getMany();
+      }
+    }
+
+    return userReports;
+  };
+
+  userReportCreate = async (
+    body: UserReportCreateRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<string> => {
+    // Find the user who is reporting the comment
+    let client: User | Influencer;
+    if (body.isReporterUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          userReports: {
+            reportedUser: true,
+          },
+        },
+      })) as User;
+
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          userReports: {
+            reportedUser: true,
+          },
+        },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const userToReport = await this.dataSource.getRepository(User).findOne({
+      where: { id: body.userId },
+      relations: {
+        userReports: true,
+      },
+    });
+    if (!userToReport) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const reportId = await this.reportCRUDService.createUserReport(body, client, userToReport);
+    return reportId;
+  };
+
+  // Influencer Report
+  influencerReportCreate = async (
+    body: InfluencerReportCreateRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<string> => {
+    // Find the user who is reporting the comment
+    let client: User | Influencer;
+    if (body.isReporterUser) {
+      client = (await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          influencerReports: {
+            reportedInfluencer: true,
+          },
+        },
+      })) as User;
+
+      if (!client) {
+        throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+      }
+    } else {
+      client = (await this.dataSource.getRepository(Influencer).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          influencerReports: {
+            reportedInfluencer: true,
+          },
+        },
+      })) as Influencer;
+      if (!client) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const influencerToReport = await this.dataSource.getRepository(Influencer).findOne({
+      where: { id: body.influencerId },
+      relations: {
+        influencerReports: true,
+      },
+    });
+    if (!influencerToReport) {
+      throw new CustomError('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const reportId = await this.reportCRUDService.createInfluencerReport(
+      body,
+      client,
+      influencerToReport,
+    );
     return reportId;
   };
 }

@@ -28,8 +28,8 @@ export class AuthController {
     req.body as LoginRequest;
     try {
       const validateBody = await loginValidator(req.body);
-      const { token, email, username } = await this.authService.userLogin(validateBody);
-      res.json({ message: 'User Successfully Logged In', token, email, username }).status(HttpStatus.OK);
+      const { id, token, email, username } = await this.authService.userLogin(validateBody);
+      res.json({ message: 'User Successfully Logged In', id, token, email, username }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
@@ -64,8 +64,8 @@ export class AuthController {
     req.body as LoginRequest;
     try {
       const validateBody = await loginValidator(req.body);
-      const { token, email, username } = await this.authService.influencerLogin(validateBody);
-      res.json({ message: 'Influencer Successfully Logged In', token, email, username }).status(HttpStatus.OK);
+      const { id, token, email, username } = await this.authService.influencerLogin(validateBody);
+      res.json({ message: 'Influencer Successfully Logged In', id, token, email, username }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

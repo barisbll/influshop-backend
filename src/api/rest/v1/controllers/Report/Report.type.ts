@@ -1,5 +1,7 @@
 import { ItemReportEnum } from '../../../../../db/entities/itemRelated/ItemReport';
 import { CommentReportEnum } from '../../../../../db/entities/itemRelated/CommentReport';
+import { UserReportEnum } from '../../../../../db/entities/userRelated/UserReport';
+import { InfluencerReportEnum } from '../../../../../db/entities/influencerRelated/InfluencerReport';
 
 // Item Report
 export type ItemReportCreateRequest = {
@@ -48,5 +50,55 @@ export type CommentReportAdminReadRequest = {
 
 export type CommentReportInspectRequest = {
     commentId: string;
+    isApprove: boolean;
+};
+
+// User Report
+export type UserReportCreateRequest = {
+    userId: string;
+    reason: UserReportEnum;
+    isReporterUser: boolean;
+    isReport: boolean;
+};
+
+export type UserReportReadRequest = {
+    userId: string;
+    isReaderUser: boolean;
+};
+
+export type UserReportAdminReadRequest = {
+    userId: string;
+    pageId: number;
+    isControlled?: boolean;
+    isApproved?: boolean | null | string;
+};
+
+export type UserReportInspectRequest = {
+    userId: string;
+    isApprove: boolean;
+};
+
+// Influencer Report
+export type InfluencerReportCreateRequest = {
+    influencerId: string;
+    reason: InfluencerReportEnum;
+    isReporterUser: boolean;
+    isReport: boolean;
+};
+
+export type InfluencerReportReadRequest = {
+    influencerId: string;
+    isReaderUser: boolean;
+};
+
+export type InfluencerReportAdminReadRequest = {
+    influencerId: string;
+    pageId: number;
+    isControlled?: boolean;
+    isApproved?: boolean | null | string;
+};
+
+export type InfluencerReportInspectRequest = {
+    influencerId: string;
     isApprove: boolean;
 };

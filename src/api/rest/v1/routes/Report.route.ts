@@ -30,5 +30,19 @@ export const createRouter = () => {
 
   router.post('/comment/inspect', isAuth, reportController.commentReportInspect);
 
+  // User Reports
+  router.post('/user/read', isAuth, reportController.userReportRead);
+
+  router.get('/users/read/:pageId', isAuth, reportController.userReportsRead);
+
+  router.get('/user/read/:userId/:pageId', isAuth, reportController.userReportAdminRead);
+
+  router.post('/user/create', isAuth, reportController.userReportCreate);
+
+  // TODO: Implement user report inspect
+
+  // Influencer Reports
+  router.post('/influencer/create', isAuth, reportController.influencerReportCreate);
+
   return router;
 };

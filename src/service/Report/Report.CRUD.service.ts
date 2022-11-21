@@ -9,6 +9,12 @@ import {
   CommentReportCreateRequest,
   CommentReportReadRequest,
   CommentReportInspectRequest,
+  UserReportCreateRequest,
+  UserReportReadRequest,
+  UserReportInspectRequest,
+  InfluencerReportCreateRequest,
+  InfluencerReportReadRequest,
+  InfluencerReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
@@ -21,6 +27,8 @@ import { ItemService } from '../Item.service';
 import Comment from '../../db/entities/itemRelated/Comment';
 import CommentReport from '../../db/entities/itemRelated/CommentReport';
 import { CommentCRUDService } from '../CommentCRUD.service';
+import UserReport from '../../db/entities/userRelated/UserReport';
+import InfluencerReport from '../../db/entities/influencerRelated/InfluencerReport';
 
 @Service()
 export class ReportCRUDService {
@@ -335,5 +343,188 @@ export class ReportCRUDService {
       logger.error(error);
       throw new CustomError('Comment Delete Failed', HttpStatus.INTERNAL_SERVER_ERROR, error);
     }
+  };
+
+  // User Report
+  userReportRead = async (
+    body: UserReportReadRequest,
+    client: User | Influencer,
+    user: User,
+  ): Promise<Partial<UserReport> | undefined> => {
+    // Find the user report inside the client
+    const userReport = (client?.userReports as UserReport[]).find(
+      (clientUserReport) => (clientUserReport.reportedUser as User)?.id === user?.id,
+    );
+    if (!userReport) {
+      return undefined;
+    }
+    const { id, report, isReportControlled, admin, updatedAt } = userReport as UserReport;
+
+    return { id, report, isReportControlled, admin, updatedAt };
+  };
+
+  createUserReport = async (
+    body: UserReportCreateRequest,
+    oldClient: User | Influencer,
+    oldUser: User,
+  ): Promise<string> => {
+    const user = clone(oldUser);
+    const client = clone(oldClient);
+    if (body.isReport) {
+      // Create or update UserReport
+      const existingUserReport = (client?.userReports as UserReport[]).find(
+        (clientsUserReport) => (clientsUserReport.reportedUser as User)?.id === user?.id,
+      );
+      if (existingUserReport) {
+        // Update existing UserReport
+        if (existingUserReport.report === body.reason) {
+          throw new CustomError(
+            'User Report Cannot Be The Same With The Existing One',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        existingUserReport.report = body.reason;
+        const updatedReport = await this.dataSource
+          .getRepository(UserReport)
+          .save(existingUserReport);
+        return updatedReport.id as string;
+      }
+      // Create new UserReport
+      const userReport = new UserReport();
+      if (body.isReporterUser) {
+        userReport.reporterUser = client as User;
+      } else {
+        userReport.reporterInfluencer = client as Influencer;
+      }
+
+      userReport.reportedUser = user;
+      userReport.report = body.reason;
+      const createdUserReport = await this.dataSource.getRepository(UserReport).save(userReport);
+
+      user.userReports = [...(user.commentReports || []), userReport];
+      await this.dataSource.getRepository(User).save(user);
+
+      client.userReports = [...(user.userReports || []), userReport];
+      if (body.isReporterUser) {
+        await this.dataSource.getRepository(User).save(client);
+      } else {
+        await this.dataSource.getRepository(Influencer).save(client);
+      }
+
+      return createdUserReport.id as string;
+    }
+    // Delete UserReport
+    const existingUserReport = (client?.userReports as UserReport[]).find(
+      (clientsUserReport) => (clientsUserReport.reportedUser as User).id === user.id,
+    );
+
+    if (!existingUserReport) {
+      throw new CustomError('User Previously Not Reported', HttpStatus.BAD_REQUEST);
+    }
+
+    user.userReports = (user.userReports || []).filter(
+      (userReport) => userReport.id !== existingUserReport.id,
+    );
+    await this.dataSource.getRepository(User).save(user);
+
+    client.userReports = (client.userReports || []).filter(
+      (userReport) => userReport.id !== existingUserReport.id,
+    );
+    if (body.isReporterUser) {
+      await this.dataSource.getRepository(User).save(client);
+    } else {
+      await this.dataSource.getRepository(Influencer).save(client);
+    }
+
+    const deletedUserReport = await this.dataSource
+      .getRepository(UserReport)
+      .remove(existingUserReport);
+    return deletedUserReport.id as string;
+  };
+
+  // Influencer Report
+  createInfluencerReport = async (
+    body: InfluencerReportCreateRequest,
+    oldClient: User | Influencer,
+    oldInfluencer: Influencer,
+  ): Promise<string> => {
+    const influencer = clone(oldInfluencer);
+    const client = clone(oldClient);
+    if (body.isReport) {
+      // Create or update InfluencerReport
+      const existingInfluencerReport = (client?.influencerReports as InfluencerReport[]).find(
+        (clientsInfluencerReport) =>
+          (clientsInfluencerReport.reportedInfluencer as Influencer)?.id === influencer?.id,
+      );
+      if (existingInfluencerReport) {
+        // Update existing InfluencerReport
+        if (existingInfluencerReport.report === body.reason) {
+          throw new CustomError(
+            'Influencer Report Cannot Be The Same With The Existing One',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        existingInfluencerReport.report = body.reason;
+        const updatedReport = await this.dataSource
+          .getRepository(InfluencerReport)
+          .save(existingInfluencerReport);
+        return updatedReport.id as string;
+      }
+      // Create new InfluencerReport
+      const influencerReport = new InfluencerReport();
+      if (body.isReporterUser) {
+        influencerReport.reporterInfluencer = client as User;
+      } else {
+        influencerReport.reporterInfluencer = client as Influencer;
+      }
+
+      influencerReport.reportedInfluencer = influencer;
+      influencerReport.report = body.reason;
+      const createdInfluencerReport = await this.dataSource
+        .getRepository(InfluencerReport)
+        .save(influencerReport);
+
+      influencer.influencerReports = [...(influencer.commentReports || []), influencerReport];
+      await this.dataSource.getRepository(Influencer).save(influencer);
+
+      client.influencerReports = [...(influencer.influencerReports || []), influencerReport];
+      if (body.isReporterUser) {
+        await this.dataSource.getRepository(Influencer).save(client);
+      } else {
+        await this.dataSource.getRepository(Influencer).save(client);
+      }
+
+      return createdInfluencerReport.id as string;
+    }
+    // Delete InfluencerReport
+    const existingInfluencerReport = (client?.influencerReports as InfluencerReport[]).find(
+      (clientsInfluencerReport) =>
+        (clientsInfluencerReport.reportedInfluencer as Influencer).id === influencer.id,
+    );
+
+    if (!existingInfluencerReport) {
+      throw new CustomError('Influencer Previously Not Reported', HttpStatus.BAD_REQUEST);
+    }
+
+    influencer.influencerReports = (influencer.influencerReports || []).filter(
+      (influencerReport) => influencerReport.id !== existingInfluencerReport.id,
+    );
+    await this.dataSource.getRepository(Influencer).save(influencer);
+
+    client.influencerReports = (client.influencerReports || []).filter(
+      (influencerReport) => influencerReport.id !== existingInfluencerReport.id,
+    );
+    if (body.isReporterUser) {
+      await this.dataSource.getRepository(User).save(client);
+    } else {
+      await this.dataSource.getRepository(Influencer).save(client);
+    }
+
+    const deletedInfluencerReport = await this.dataSource
+      .getRepository(InfluencerReport)
+      .remove(existingInfluencerReport);
+    return deletedInfluencerReport.id as string;
   };
 }
