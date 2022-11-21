@@ -17,11 +17,7 @@ import {
   UserReportCreateRequest,
   UserReportReadRequest,
   UserReportAdminReadRequest,
-  UserReportInspectRequest,
   InfluencerReportCreateRequest,
-  InfluencerReportAdminReadRequest,
-  InfluencerReportReadRequest,
-  InfluencerReportInspectRequest,
 
 } from './Report.type';
 import { itemReportReadValidator } from './validators/ItemReport.read.validator';
@@ -36,9 +32,7 @@ import { userReportCreateValidator } from './validators/UserReport.create.valida
 import { userReportReadValidator } from './validators/UserReport.read.validator';
 import { userReportAdminReadValidator } from './validators/UserReportAdmin.read.validator';
 import { influencerReportCreateValidator } from './validators/InfluencerReport.create.validator';
-import { influencerReportReadValidator } from './validators/InfluencerReport.read.validator';
-import { influencerReportAdminReadValidator } from './validators/InfluencerReportAdmin.read.validator';
-import { influencerReportInspectValidator } from './validators/InfluencerReport.inspect.validator';
+import logger from '../../../../../config/logger';
 
 @Service()
 export class ReportController {
@@ -53,7 +47,6 @@ export class ReportController {
   ): Promise<void> => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
     const itemReportReadRequest = req.body as ItemReportReadRequest;
-
     try {
       const validatedBody = await itemReportReadValidator(itemReportReadRequest);
 
