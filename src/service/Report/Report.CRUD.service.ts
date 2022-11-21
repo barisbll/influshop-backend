@@ -11,10 +11,7 @@ import {
   CommentReportInspectRequest,
   UserReportCreateRequest,
   UserReportReadRequest,
-  UserReportInspectRequest,
   InfluencerReportCreateRequest,
-  InfluencerReportReadRequest,
-  InfluencerReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
@@ -49,7 +46,7 @@ export class ReportCRUDService {
   ): Promise<Partial<ItemReport> | undefined> => {
     // Find the item report inside the client
     const itemReport = (client?.itemReports as ItemReport[]).find(
-      (clientItemReport) => (clientItemReport.item as Item).id === item.id,
+      (clientItemReport) => (clientItemReport.item as Item)?.id === item?.id,
     );
     if (!itemReport) {
       return undefined;
@@ -70,7 +67,7 @@ export class ReportCRUDService {
     if (body.isReport) {
       // Create or update ItemReport
       const existingItemReport = (client?.itemReports as ItemReport[]).find(
-        (clientsItemReport) => (clientsItemReport.item as Item).id === item.id,
+        (clientsItemReport) => (clientsItemReport.item as Item)?.id === item?.id,
       );
       if (existingItemReport) {
         // Update existing ItemReport
@@ -80,7 +77,6 @@ export class ReportCRUDService {
             HttpStatus.BAD_REQUEST,
           );
         }
-
         existingItemReport.report = body.reason;
         const updatedReport = await this.dataSource
           .getRepository(ItemReport)
@@ -98,7 +94,6 @@ export class ReportCRUDService {
       itemReport.item = item;
       itemReport.report = body.reason;
       const createdItemReport = await this.dataSource.getRepository(ItemReport).save(itemReport);
-
       item.itemReports = [...(item.itemReports || []), itemReport];
       await this.dataSource.getRepository(Item).save(item);
 
@@ -115,7 +110,6 @@ export class ReportCRUDService {
     const existingItemReport = (client?.itemReports as ItemReport[]).find(
       (clientsItemReport) => (clientsItemReport.item as Item).id === item.id,
     );
-
     if (!existingItemReport) {
       throw new CustomError('Item Previously Not Reported', HttpStatus.BAD_REQUEST);
     }

@@ -14,11 +14,7 @@ import {
   UserReportCreateRequest,
   UserReportReadRequest,
   UserReportAdminReadRequest,
-  UserReportInspectRequest,
   InfluencerReportCreateRequest,
-  InfluencerReportReadRequest,
-  InfluencerReportAdminReadRequest,
-  InfluencerReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import { CustomError } from '../../util/CustomError';
 import User from '../../db/entities/userRelated/User';
@@ -31,6 +27,7 @@ import { config } from '../../config/config';
 import Comment from '../../db/entities/itemRelated/Comment';
 import CommentReport from '../../db/entities/itemRelated/CommentReport';
 import UserReport from '../../db/entities/userRelated/UserReport';
+import logger from '../../config/logger';
 
 @Service()
 export class ReportService {
@@ -71,6 +68,12 @@ export class ReportService {
     } else {
       client = (await this.dataSource.getRepository(Influencer).findOne({
         where: { id: decodedToken.id },
+        relations: {
+          itemReports: {
+            item: true,
+            admin: true,
+          },
+        },
       })) as Influencer;
       if (!client) {
         throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
@@ -257,7 +260,6 @@ export class ReportService {
         throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
       }
     }
-
     const item = await this.dataSource.getRepository(Item).findOne({
       where: { id: body.itemId },
       relations: {
