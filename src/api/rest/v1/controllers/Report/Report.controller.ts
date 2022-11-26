@@ -32,7 +32,6 @@ import { userReportCreateValidator } from './validators/UserReport.create.valida
 import { userReportReadValidator } from './validators/UserReport.read.validator';
 import { userReportAdminReadValidator } from './validators/UserReportAdmin.read.validator';
 import { influencerReportCreateValidator } from './validators/InfluencerReport.create.validator';
-import logger from '../../../../../config/logger';
 
 @Service()
 export class ReportController {
