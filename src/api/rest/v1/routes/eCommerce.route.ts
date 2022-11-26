@@ -12,5 +12,9 @@ export const createRouter = () => {
 
   router.post('/add-to-cart', isAuth, eCOmmerceController.addToCart);
 
+  router.get('/favorite', isAuth, eCOmmerceController.getFavoriteItems);
+
+  router.post('/add-to-favorite', isAuth, eCOmmerceController.addToFavorite);
+
   return router;
 };

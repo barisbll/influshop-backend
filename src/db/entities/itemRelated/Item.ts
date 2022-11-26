@@ -14,7 +14,7 @@ import HistoricalRecord from '../general/HistoricalRecord';
 import Category from '../influencerRelated/Category';
 import Influencer from '../influencerRelated/Influencer';
 import CartItem from '../userRelated/CartItem';
-import Favorite from '../userRelated/Favorite';
+import FavoriteItem from '../userRelated/FavoriteItem';
 import Comment from './Comment';
 import ItemGroup from './ItemGroup';
 import ItemImage from './ItemImage';
@@ -106,6 +106,12 @@ export default class Item {
   })
   cartItems?: CartItem[];
 
+  @OneToMany(() => FavoriteItem, (favoriteItem) => favoriteItem.item, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  favoriteItems?: FavoriteItem[];
+
   @OneToMany(() => ItemStar, (itemStar) => itemStar.item, {
     nullable: true,
     onDelete: 'CASCADE',
@@ -136,9 +142,4 @@ export default class Item {
     nullable: true,
   })
   categories?: Category[];
-
-  @ManyToMany(() => Favorite, (favorite) => favorite.items, {
-    nullable: true,
-  })
-  favorites?: Favorite[];
 }

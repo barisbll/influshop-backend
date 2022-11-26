@@ -4,8 +4,9 @@ import { Service } from 'typedi';
 import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
 import { eCommerceService } from '../../../../../service/eCommerce/eCommerce.service';
-import { AddToCartRequest } from './eCommerce.type';
+import { AddToCartRequest, AddToFavoriteRequest } from './eCommerce.type';
 import { addToCartValidator } from './validators/AddToCart.validator';
+import { addToFavoriteValidator } from './validators/AddToFavorite.validator';
 
 @Service()
 export class eCommerceController {
@@ -32,7 +33,37 @@ export class eCommerceController {
         addToCartRequest,
       )) as unknown as AddToCartRequest;
       await this.service.addToCart(validatedBody, decodedToken);
-      res.json({ message: 'Item Successfully added to the cart' }).status(HttpStatus.OK);
+      res.json({ message: 'Item Successfully Added to the Cart' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getFavoriteItems = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const favoriteItems = await this.service.getFavoriteItems(decodedToken);
+      res.status(HttpStatus.OK).json(favoriteItems);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addToFavorite = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const addToFavoriteRequest = req.body as AddToFavoriteRequest;
+
+    try {
+      const validatedBody = (await addToFavoriteValidator(
+        addToFavoriteRequest,
+      )) as unknown as AddToFavoriteRequest;
+      await this.service.addToFavorite(validatedBody, decodedToken);
+      res.json({ message: 'Item Successfully Added to the Favorite' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

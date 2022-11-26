@@ -3,3 +3,8 @@ export type AddToCartRequest = {
     quantity: number;
     isAddToCart: boolean;
 };
+
+export type AddToFavoriteRequest = {
+    itemId: string;
+    isAddToFavorite: boolean;
+};

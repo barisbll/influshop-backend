@@ -5,8 +5,9 @@ import { DataSource } from 'typeorm';
 import { CustomError } from '../../util/CustomError';
 import Item from '../../db/entities/itemRelated/Item';
 import User from '../../db/entities/userRelated/User';
-import { AddToCartRequest } from '../../api/rest/v1/controllers/eCommerce/eCommerce.type';
+import { AddToCartRequest, AddToFavoriteRequest } from '../../api/rest/v1/controllers/eCommerce/eCommerce.type';
 import CartItem from '../../db/entities/userRelated/CartItem';
+import FavoriteItem from '../../db/entities/userRelated/FavoriteItem';
 
 @Service()
 export class eCommerceCRUDService {
@@ -76,6 +77,63 @@ export class eCommerceCRUDService {
         .softDelete()
         .from(CartItem)
         .where('id = :id', { id: foundCartItem.id })
+        .execute();
+    }
+  };
+
+  addToFavorite = async (
+    addToFavoriteRequest: AddToFavoriteRequest,
+    oldUser: User,
+    oldItem: Item,
+  ): Promise<void> => {
+    const user = clone(oldUser);
+    const item = clone(oldItem);
+
+    if (addToFavoriteRequest.isAddToFavorite) {
+      // Add item to favorites
+
+      const foundFavoriteItem = user.favoriteItems?.find((favoriteItem) => {
+        if (favoriteItem.item?.id === item.id) {
+          return true;
+        }
+        return false;
+      });
+
+      if (foundFavoriteItem) {
+        throw new CustomError(
+          'Item already in favorites',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+        const favoriteItem = new FavoriteItem();
+        favoriteItem.user = user;
+        favoriteItem.item = item;
+
+        await this.dataSource.getRepository(FavoriteItem).save(favoriteItem);
+    } else {
+      // Remove item from favorites
+
+      const foundFavoriteItem = user.favoriteItems?.find((favoriteItem) => {
+        if (favoriteItem.item?.id === item.id) {
+          return true;
+        }
+        return false;
+      });
+
+      if (!foundFavoriteItem) {
+        throw new CustomError(
+          'Item not in favorites',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+        await this.dataSource
+        .getRepository(FavoriteItem)
+        .createQueryBuilder()
+        .softDelete()
+        .from(FavoriteItem)
+        .where('id = :id', { id: foundFavoriteItem.id })
         .execute();
     }
   };
