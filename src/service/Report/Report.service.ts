@@ -27,7 +27,6 @@ import { config } from '../../config/config';
 import Comment from '../../db/entities/itemRelated/Comment';
 import CommentReport from '../../db/entities/itemRelated/CommentReport';
 import UserReport from '../../db/entities/userRelated/UserReport';
-import logger from '../../config/logger';
 
 @Service()
 export class ReportService {
