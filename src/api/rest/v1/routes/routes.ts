@@ -4,6 +4,7 @@ import { createRouter as createCommentRoutes } from './Comment.route';
 import { createRouter as createItemOpsRoutes } from './ItemOps.route';
 import { createRouter as createStarRoutes } from './Star.route';
 import { createRouter as createReportRoutes } from './Report.route';
+import { createRouter as createeCommerceRoutes } from './eCommerce.route';
 
 export const createRouter = () => {
   const router = express.Router();
@@ -13,6 +14,7 @@ export const createRouter = () => {
   router.use('/comment', createCommentRoutes());
   router.use('/star', createStarRoutes());
   router.use('/report', createReportRoutes());
+  router.use('/e-commerce', createeCommerceRoutes());
 
   return router;
 };
