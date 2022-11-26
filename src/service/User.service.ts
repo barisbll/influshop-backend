@@ -2,7 +2,6 @@ import { hash } from 'bcryptjs';
 import { Container, Inject, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import { SignupRequest } from '../api/rest/v1/controllers/Auth/Auth.type';
-import Cart from '../db/entities/userRelated/Cart';
 import Favorite from '../db/entities/userRelated/Favorite';
 import User from '../db/entities/userRelated/User';
 
@@ -21,20 +20,14 @@ export class UserService {
     user.username = req.username;
     user.email = req.email;
 
-    const cart = new Cart();
-    await this.dataSource.manager.save(cart);
-
     const favorite = new Favorite();
     await this.dataSource.manager.save(favorite);
 
     // relations
-    cart.user = user;
     favorite.user = user;
-    user.cart = cart;
     user.favorite = favorite;
 
     const savedUser = await this.dataSource.manager.save(user);
-    await this.dataSource.manager.save(cart);
     await this.dataSource.manager.save(favorite);
 
     return savedUser.username as string;

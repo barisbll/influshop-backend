@@ -1,20 +1,22 @@
 import { Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Min } from 'class-validator';
 import Item from '../itemRelated/Item';
-import Cart from './Cart';
+import User from './User';
 
 @Entity('cart_item')
 export default class CartItem {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
+  @Min(1)
   @Column()
   quantity?: number;
 
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  @ManyToOne(() => Cart, (cart) => cart.cartItems)
-  cart?: Cart;
+  @ManyToOne(() => User, (user) => user.cartItems)
+  user?: User;
 
   @ManyToOne(() => Item, (item) => item.cartItems)
   item?: Item;

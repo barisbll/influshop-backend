@@ -25,8 +25,8 @@ export class eCommerceService {
     const user = await this.dataSource.manager.findOne(User, {
       where: { id: decodedToken.id },
       relations: {
-        cart: {
-            cartItems: true,
+        cartItems: {
+            item: true,
         },
       },
     });
@@ -37,6 +37,11 @@ export class eCommerceService {
 
     const item = await this.dataSource.manager.findOne(Item, {
         where: { id: addToCartRequest.itemId },
+        relations: {
+            cartItems: {
+                user: true,
+            },
+        },
         });
 
     if (!item) {

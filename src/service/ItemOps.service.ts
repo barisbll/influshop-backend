@@ -535,9 +535,7 @@ export class ItemOpsService {
           commentImages: true,
           commentReports: true,
         },
-        cartItems: {
-          cart: true,
-        },
+        cartItems: true,
         itemStars: true,
         itemReports: true,
       },
@@ -578,9 +576,7 @@ export class ItemOpsService {
           commentImages: true,
           commentReports: true,
         },
-        cartItems: {
-          cart: true,
-        },
+        cartItems: true,
         itemStars: true,
         itemReports: true,
       },

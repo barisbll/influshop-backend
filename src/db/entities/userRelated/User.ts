@@ -2,7 +2,7 @@ import { Entity, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import Person from '../baseEntities/Person';
 import InfluencerReport from '../influencerRelated/InfluencerReport';
 import HistoricalRecord from '../general/HistoricalRecord';
-import Cart from './Cart';
+import CartItem from './CartItem';
 import Favorite from './Favorite';
 import UserReport from './UserReport';
 import ItemReport from '../itemRelated/ItemReport';
@@ -16,10 +16,6 @@ import MessageHistory from '../messageRelated/MessageHistory';
 
 @Entity('user')
 export default class User extends Person {
-  @OneToOne(() => Cart, (cart) => cart.user)
-  @JoinColumn()
-  cart?: Cart;
-
   @OneToOne(() => Favorite, (favorite) => favorite.user)
   @JoinColumn()
   favorite?: Favorite;
@@ -107,4 +103,10 @@ export default class User extends Person {
     onDelete: 'NO ACTION',
   })
   messageHistories?: MessageHistory[];
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.user, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  cartItems?: CartItem[];
 }
