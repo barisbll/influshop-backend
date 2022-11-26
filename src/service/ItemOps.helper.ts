@@ -73,6 +73,78 @@ export const itemsMapper = (
   }, [] as MappedObject[]);
 };
 
+export const mainPageItemsMapper = (
+  items: Item[] | undefined,
+  pinnedItemId: string | undefined,
+): MappedObject[] => {
+  const mappedItems = items?.map((item) => {
+    if (item.itemGroup) {
+      const { itemGroupName, imageLocation, id } = item.itemGroup;
+      return {
+        type: 'itemGroup',
+        id,
+        name: itemGroupName,
+        description: item.itemGroup.itemGroupDescription,
+        imageLocation,
+        price: item.itemPrice,
+        available: (item.itemQuantity || 1) > 0,
+        averageStars: item.averageStars,
+        commentsLength: item.totalComments,
+        isPinned: pinnedItemId === item.id,
+        influencerName: item.influencer?.username,
+        influencerImage: item.influencer?.imageLocation,
+        updatedAt: item.itemGroup.updatedAt,
+      };
+    }
+
+    return {
+      type: 'item',
+      id: item.id,
+      name: item.itemName,
+      description: item.itemDescription,
+      imageLocation: item.images?.[0]?.imageLocation || null,
+      price: item.itemPrice,
+      available: (item.itemQuantity || 1) > 0,
+      averageStars: item.averageStars,
+      commentsLength: item.totalComments,
+      isPinned: pinnedItemId === item.id,
+      influencerName: item.influencer?.username,
+      influencerImage: item.influencer?.imageLocation,
+      updatedAt: item.updated_at,
+    };
+  });
+
+  const counterObj: { [key: string]: number } = {};
+  return (mappedItems as MappedObject[])?.reduce((acc, current) => {
+    const itemGroupIdx = acc.findIndex((element) => element.id === current.id);
+    if (itemGroupIdx > -1) {
+      acc[itemGroupIdx].commentsLength += current.commentsLength;
+
+      if (current.averageStars) {
+        if (counterObj[current.id]) {
+          counterObj[current.id] += 1;
+        } else {
+          // eslint-disable-next-line no-lonely-if
+          if (acc[itemGroupIdx].averageStars) {
+            counterObj[current.id] = 2;
+          } else {
+            counterObj[current.id] = 1;
+          }
+        }
+        acc[itemGroupIdx].averageStars =
+          ((acc[itemGroupIdx].averageStars || 0) + current.averageStars) / counterObj[current.id];
+      }
+
+      if (current.isPinned) {
+        acc[itemGroupIdx].isPinned = true;
+      }
+
+      return acc;
+    }
+    return [...acc, current];
+  }, [] as MappedObject[]);
+};
+
 export function arrayEquals(a: string[], b: string[]): boolean {
   return (
     Array.isArray(a) &&

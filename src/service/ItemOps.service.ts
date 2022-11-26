@@ -15,9 +15,10 @@ import Item from '../db/entities/itemRelated/Item';
 import ItemGroup from '../db/entities/itemRelated/ItemGroup';
 import { CustomError } from '../util/CustomError';
 import { ItemService } from './Item.service';
-import { arrayEquals, commentsMapper, itemsMapper } from './ItemOps.helper';
+import { arrayEquals, commentsMapper, itemsMapper, mainPageItemsMapper } from './ItemOps.helper';
 import { ItemGetResult, MappedObject } from './ItemOps.type';
 import User from '../db/entities/userRelated/User';
+import { config } from '../config/config';
 
 @Service()
 export class ItemOpsService {
@@ -97,6 +98,34 @@ export class ItemOpsService {
     }
 
     return itemsMapper(influencer.items, influencer?.pinnedItem?.id);
+  };
+
+  mainPageItemsGet = async (decodedToken: RefreshTokenRequest | undefined, pageId: number) => {
+    let user: User | null = null;
+    if (decodedToken) {
+      user = await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+      });
+
+      if (!user) {
+        throw new CustomError('The User Does Not Exist', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    const result = await this.dataSource.getRepository(Item).find({
+      order: {
+        created_at: 'DESC',
+      },
+      relations: {
+        itemGroup: true,
+        images: true,
+        influencer: true,
+      },
+      skip: (pageId - 1) * config.mainPageItemLimit,
+      take: config.mainPageItemLimit,
+    });
+
+    return mainPageItemsMapper(result, 'undefined-uuid');
   };
 
   itemGet = async (
