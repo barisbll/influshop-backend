@@ -2,7 +2,11 @@ import HttpStatus from 'http-status-codes';
 import { Container, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 import { RefreshTokenRequest } from '../../api/rest/v1/controllers/Auth/Auth.type';
-import { AddToCartRequest, AddToFavoriteRequest } from '../../api/rest/v1/controllers/eCommerce/eCommerce.type';
+import {
+  AddToCartRequest,
+  AddToFavoriteRequest,
+  CheckoutRequest,
+} from '../../api/rest/v1/controllers/eCommerce/eCommerce.type';
 import { eCommerceCRUDService } from './eCommerce.CRUD.service';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
@@ -133,5 +137,28 @@ export class eCommerceService {
     }
 
     await this.eCommerceCRUDService.addToFavorite(addToFavoriteRequest, user, item);
+  };
+
+  checkout = async (
+    checkoutRequest: CheckoutRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<{ message: string; isSuccessfull: boolean }> => {
+    const user = await this.dataSource.manager.findOne(User, {
+      where: { id: decodedToken.id },
+      relations: {
+        cartItems: {
+          item: {
+            influencer: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const result = await this.eCommerceCRUDService.checkout(checkoutRequest, user);
+    return result;
   };
 }

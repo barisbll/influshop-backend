@@ -1,7 +1,12 @@
 import { Length } from 'class-validator';
 import {
   BaseEntity,
-  Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('address')
@@ -9,7 +14,9 @@ export default class Address extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   address?: string;
 
   @Column()

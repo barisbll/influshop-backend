@@ -4,9 +4,10 @@ import { Service } from 'typedi';
 import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
 import { eCommerceService } from '../../../../../service/eCommerce/eCommerce.service';
-import { AddToCartRequest, AddToFavoriteRequest } from './eCommerce.type';
+import { AddToCartRequest, AddToFavoriteRequest, CheckoutRequest } from './eCommerce.type';
 import { addToCartValidator } from './validators/AddToCart.validator';
 import { addToFavoriteValidator } from './validators/AddToFavorite.validator';
+import { checkoutValidator } from './validators/Checkout.validator';
 
 @Service()
 export class eCommerceController {
@@ -64,6 +65,21 @@ export class eCommerceController {
       )) as unknown as AddToFavoriteRequest;
       await this.service.addToFavorite(validatedBody, decodedToken);
       res.json({ message: 'Item Successfully Added to the Favorite' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  checkout = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const checkoutRequest = req.body as CheckoutRequest;
+
+    try {
+      const validatedBody = (await checkoutValidator(
+        checkoutRequest,
+      )) as unknown as CheckoutRequest;
+      const { isSuccessfull, message } = await this.service.checkout(validatedBody, decodedToken);
+      res.json({ message, isSuccessfull }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
