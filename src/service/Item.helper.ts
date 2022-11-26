@@ -6,7 +6,6 @@ import CommentReport from '../db/entities/itemRelated/CommentReport';
 import Item from '../db/entities/itemRelated/Item';
 import ItemReport from '../db/entities/itemRelated/ItemReport';
 import ItemStar from '../db/entities/itemRelated/ItemStar';
-import Cart from '../db/entities/userRelated/Cart';
 import CartItem from '../db/entities/userRelated/CartItem';
 
 export const itemSoftDeleteOperations = async (item: Item, dataSource: DataSource) => {
@@ -53,15 +52,6 @@ export const itemSoftDeleteOperations = async (item: Item, dataSource: DataSourc
 
   // delete cart items
   item.cartItems?.forEach(async (cartItem) => {
-    cartItem.cart?.cartItems?.filter(async (cartItemInCart) => {
-      if (cartItemInCart.id === cartItem.id) {
-        cartItemInCart.cart?.cartItems?.splice(
-          cartItemInCart.cart?.cartItems?.indexOf(cartItemInCart),
-          1,
-        );
-        await dataSource.getRepository(Cart).save(cartItemInCart.cart as Cart);
-      }
-    });
     await dataSource
       .getRepository(CartItem)
       .createQueryBuilder()

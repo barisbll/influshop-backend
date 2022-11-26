@@ -1,4 +1,12 @@
-import { Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import User from './User';
 
 @Entity('credit_card')
@@ -22,7 +30,13 @@ export default class CreditCard {
   cvv?: string;
 
   @Column()
-  lastUsageDate?: string;
+  last4Digits?: string;
+
+  @CreateDateColumn()
+  createdAt?: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
 
   @DeleteDateColumn()
   deletedAt?: Date;
