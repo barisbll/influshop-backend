@@ -18,6 +18,32 @@ export class eCommerceService {
     this.eCommerceCRUDService = Container.get(eCommerceCRUDService);
   }
 
+  getItems = async (decodedToken: RefreshTokenRequest): Promise<(Item | undefined)[]> => {
+    const user = await this.dataSource.manager.findOne(User, {
+      where: { id: decodedToken.id },
+      relations: {
+        cartItems: {
+          item: {
+            images: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return (
+      user.cartItems?.map((cartItem) => ({
+        id: cartItem.item?.id,
+        itemName: cartItem.item?.itemName,
+        quantity: cartItem.quantity,
+        image: cartItem.item?.images?.[0].imageLocation,
+      })) || []
+    );
+  };
+
   addToCart = async (
     addToCartRequest: AddToCartRequest,
     decodedToken: RefreshTokenRequest,
@@ -26,7 +52,7 @@ export class eCommerceService {
       where: { id: decodedToken.id },
       relations: {
         cartItems: {
-            item: true,
+          item: true,
         },
       },
     });
@@ -36,18 +62,18 @@ export class eCommerceService {
     }
 
     const item = await this.dataSource.manager.findOne(Item, {
-        where: { id: addToCartRequest.itemId },
-        relations: {
-            cartItems: {
-                user: true,
-            },
+      where: { id: addToCartRequest.itemId },
+      relations: {
+        cartItems: {
+          user: true,
         },
-        });
+      },
+    });
 
     if (!item) {
-        throw new CustomError('Item not found', HttpStatus.NOT_FOUND);
+      throw new CustomError('Item not found', HttpStatus.NOT_FOUND);
     }
 
-    // await this.eCommerceCRUDService.addToCart(addToCartRequest, user, item);
+    await this.eCommerceCRUDService.addToCart(addToCartRequest, user, item);
   };
 }

@@ -8,6 +8,8 @@ export const createRouter = () => {
 
   const router = express.Router();
 
+  router.get('/cart', isAuth, eCOmmerceController.getCartItems);
+
   router.post('/add-to-cart', isAuth, eCOmmerceController.addToCart);
 
   return router;

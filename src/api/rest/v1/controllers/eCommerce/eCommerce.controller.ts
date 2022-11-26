@@ -12,6 +12,17 @@ export class eCommerceController {
   // eslint-disable-next-line no-unused-vars
   constructor(private readonly service: eCommerceService) {}
 
+  getCartItems = async (req: ExtendedRequest, res: Response, next: NextFunction): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const cartItems = await this.service.getItems(decodedToken);
+      res.status(HttpStatus.OK).json(cartItems);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   addToCart = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
     const addToCartRequest = req.body as AddToCartRequest;

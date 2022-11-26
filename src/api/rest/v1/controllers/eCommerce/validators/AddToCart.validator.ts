@@ -9,7 +9,7 @@ export const addToCartValidator = async (
 ) => {
   const schema = yup.object().shape({
     itemId: yup.string().uuid().required(),
-    itemQuantity: yup.number().min(1).required(),
+    quantity: yup.number().min(1).required(),
     isAddToCart: yup.boolean().required(),
   });
 
