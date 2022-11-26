@@ -14,6 +14,8 @@ export const createRouter = () => {
 
   router.get('/items/:influencerName', itemOpsController.itemsGet);
 
+  router.get('/main-page-items/:pageId', optionalIsAuth, itemOpsController.mainPageItemsGet);
+
   router.get('/item/:itemId', optionalIsAuth, itemOpsController.itemGet);
 
   router.get('/item/:influencerName/:itemGroupName/extra', optionalIsAuth, itemOpsController.itemGetWithExtraFeatures);

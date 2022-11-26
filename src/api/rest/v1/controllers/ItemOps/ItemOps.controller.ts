@@ -23,6 +23,7 @@ import { itemsGetValidator } from './validators/ItemsGet.validator';
 import { itemUpdateValidator } from './validators/ItemUpdate.validator';
 import { itemWithExtraCreateValidator } from './validators/ItemWithExtraCreate.validator';
 import { itemWithExtraUpdateValidator } from './validators/ItemWithExtraUpdate.validator';
+import { mainPageGetGetValidator } from './validators/MainPageGet.validator';
 
 @Service()
 export class ItemOpsController {
@@ -65,6 +66,19 @@ export class ItemOpsController {
       const validatedBody = (await itemsGetValidator(influencerName)) as { influencerName: string };
       const items = await this.itemOps.itemsGet(validatedBody.influencerName);
       res.json({ message: 'Items Successfully Retrieved', items }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  mainPageItemsGet = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest | undefined;
+    const pageId = req.params as { pageId: string };
+
+    try {
+      const validatedBody = (await mainPageGetGetValidator(pageId)) as { pageId: number };
+      const item = await this.itemOps.mainPageItemsGet(decodedToken, validatedBody.pageId);
+      res.json({ message: 'Item Successfully Retrieved', item }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
