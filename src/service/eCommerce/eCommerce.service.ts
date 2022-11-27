@@ -6,10 +6,12 @@ import {
   AddToCartRequest,
   AddToFavoriteRequest,
   CheckoutRequest,
+  CheckoutWithSavedRequest,
 } from '../../api/rest/v1/controllers/eCommerce/eCommerce.type';
 import { eCommerceCRUDService } from './eCommerce.CRUD.service';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
+import CreditCard from '../../db/entities/userRelated/CreditCard';
 import { CustomError } from '../../util/CustomError';
 
 @Service()
@@ -159,6 +161,44 @@ export class eCommerceService {
     }
 
     const result = await this.eCommerceCRUDService.checkout(checkoutRequest, user);
+    return result;
+  };
+
+  checkoutWithSaved = async (
+    checkoutWithSavedRequest: CheckoutWithSavedRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<{ message: string; isSuccessfull: boolean }> => {
+    const user = await this.dataSource.manager.findOne(User, {
+      where: { id: decodedToken.id },
+      relations: {
+        cartItems: {
+          item: {
+            influencer: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const creditCard = await this.dataSource.manager.findOne(CreditCard, {
+      where: { id: checkoutWithSavedRequest.creditCardId },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!creditCard) {
+      throw new CustomError('Credit card not found', HttpStatus.NOT_FOUND);
+    }
+
+    if ((creditCard.user as User).id !== user.id) {
+      throw new CustomError("User doesn't have such a credit card", HttpStatus.NOT_FOUND);
+    }
+
+    const result = await this.eCommerceCRUDService.checkout(creditCard, user);
     return result;
   };
 }

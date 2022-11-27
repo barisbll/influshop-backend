@@ -30,3 +30,8 @@ export type CheckoutRequest = {
   creditCard: CreditCard;
   shippingAddress: Address;
 };
+
+export type CheckoutWithSavedRequest = {
+  creditCardId: string;
+  shippingAddress: Address;
+};

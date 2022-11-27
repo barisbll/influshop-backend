@@ -4,10 +4,16 @@ import { Service } from 'typedi';
 import { ExtendedRequest } from '../../../../../middleware/is-auth';
 import { RefreshTokenRequest } from '../Auth/Auth.type';
 import { eCommerceService } from '../../../../../service/eCommerce/eCommerce.service';
-import { AddToCartRequest, AddToFavoriteRequest, CheckoutRequest } from './eCommerce.type';
+import {
+  AddToCartRequest,
+  AddToFavoriteRequest,
+  CheckoutRequest,
+  CheckoutWithSavedRequest,
+} from './eCommerce.type';
 import { addToCartValidator } from './validators/AddToCart.validator';
 import { addToFavoriteValidator } from './validators/AddToFavorite.validator';
 import { checkoutValidator } from './validators/Checkout.validator';
+import { checkoutWithSavedValidator } from './validators/CheckoutWithSaved.validator';
 
 @Service()
 export class eCommerceController {
@@ -79,6 +85,24 @@ export class eCommerceController {
         checkoutRequest,
       )) as unknown as CheckoutRequest;
       const { isSuccessfull, message } = await this.service.checkout(validatedBody, decodedToken);
+      res.json({ message, isSuccessfull }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  checkoutWithSaved = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const checkoutWithSavedRequest = req.body as CheckoutWithSavedRequest;
+
+    try {
+      const validatedBody = (await checkoutWithSavedValidator(
+        checkoutWithSavedRequest,
+      )) as unknown as CheckoutWithSavedRequest;
+      const { isSuccessfull, message } = await this.service.checkoutWithSaved(
+        validatedBody,
+        decodedToken,
+      );
       res.json({ message, isSuccessfull }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
