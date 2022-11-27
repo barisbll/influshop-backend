@@ -7,6 +7,7 @@ import User from '../../db/entities/userRelated/User';
 import {
   AddressCreateRequest,
   AddressUpdateRequest,
+  CreditCardCreateRequest,
 } from '../../api/rest/v1/controllers/Settings/Settings.type';
 import { RefreshTokenRequest } from '../../api/rest/v1/controllers/Auth/Auth.type';
 import { SettingsCRUDService } from './Settings.CRUD.service';
@@ -136,5 +137,85 @@ export class SettingsService {
     }
 
     await this.settingsCRUDService.addressDelete(foundAddress, user);
+  };
+
+  creditCardRead = async (decodedToken: RefreshTokenRequest) => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        creditCards: true,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('UserNotFound', HttpStatus.NOT_FOUND, {
+        message: 'User not found',
+      });
+    }
+
+    const filteredResult = (user?.creditCards || []).map((creditCard) => ({
+      id: creditCard.id,
+      creditCardName: creditCard.creditCardName,
+      cardHolderNameAnonymized: creditCard.cardHolderNameAnonymized,
+      last4Digits: creditCard.last4Digits,
+    }));
+
+    return filteredResult;
+  };
+
+  creditCardCreate = async (
+    creditCardCreateRequest: CreditCardCreateRequest,
+    decodedToken: RefreshTokenRequest,
+  ) => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        creditCards: true,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('UserNotFound', HttpStatus.NOT_FOUND, {
+        message: 'User not found',
+      });
+    }
+
+    await this.settingsCRUDService.creditCardCreate(creditCardCreateRequest, user);
+  };
+
+  creditCardDelete = async (
+    creditCardDeleteRequest: { creditCardId: string },
+    decodedToken: RefreshTokenRequest,
+  ) => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        creditCards: true,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('UserNotFound', HttpStatus.NOT_FOUND, {
+        message: 'User not found',
+      });
+    }
+
+    const foundCreditCard = (user?.creditCards || []).find(
+      (creditCard) => creditCard.id === creditCardDeleteRequest.creditCardId,
+    );
+
+    if (!foundCreditCard) {
+      throw new CustomError("User doesn't have such a credit card", HttpStatus.NOT_FOUND, {
+        message: 'Credit card not found',
+      });
+    }
+
+    await this.settingsCRUDService.creditCardDelete(foundCreditCard, user);
   };
 }

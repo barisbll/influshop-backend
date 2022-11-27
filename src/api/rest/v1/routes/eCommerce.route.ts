@@ -18,5 +18,7 @@ export const createRouter = () => {
 
   router.post('/checkout', isAuth, eCOmmerceController.checkout);
 
+  router.post('/checkout-with-saved-credit-card', isAuth, eCOmmerceController.checkoutWithSaved);
+
   return router;
 };

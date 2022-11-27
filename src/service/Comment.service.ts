@@ -14,6 +14,7 @@ import User from '../db/entities/userRelated/User';
 import { CustomError } from '../util/CustomError';
 import { CommentReturn } from './Comment.type';
 import { CommentCRUDService } from './CommentCRUD.service';
+import HistoricalRecord from '../db/entities/general/HistoricalRecord';
 
 @Service()
 export class CommentService {
@@ -62,6 +63,17 @@ export class CommentService {
     const item = await this.findItem(body.itemId);
     if (!item) {
       throw new CustomError('Item not found', HttpStatus.NOT_FOUND);
+    }
+
+    const record = await this.dataSource
+      .getRepository(HistoricalRecord)
+      .createQueryBuilder()
+      .where('user_id = :userId', { userId: user.id })
+      .andWhere('item_id = :itemId', { itemId: item.id })
+      .getOne();
+
+    if (!record) {
+      throw new CustomError('User must purchase the item in order to comment', HttpStatus.NOT_FOUND);
     }
 
     const comment = await this.commentCRUDService.commentCreate(body, user, item);
@@ -161,7 +173,7 @@ export class CommentService {
         commentLikes: {
           comment: true,
         },
-        },
+      },
     });
 
     if (!comment) {
@@ -171,40 +183,74 @@ export class CommentService {
     await this.commentCRUDService.commentLike(body, comment, user);
   };
 
-commentDislike = async (
-  body: CommentDislikeOperationRequest,
-  decodedToken: RefreshTokenRequest,
-): Promise<void> => {
-  const user = await this.dataSource.getRepository(User).findOne({
-    where: {
-      id: decodedToken.id,
-    },
-    relations: {
-      commentLikes: {
-        comment: true,
+  commentDislike = async (
+    body: CommentDislikeOperationRequest,
+    decodedToken: RefreshTokenRequest,
+  ): Promise<void> => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
       },
-    },
-  });
-
-  if (!user) {
-    throw new CustomError('User not found', HttpStatus.NOT_FOUND);
-  }
-
-  const comment = await this.dataSource.getRepository(Comment).findOne({
-    where: {
-      id: body.commentId,
-    },
-    relations: {
-      commentLikes: {
-        comment: true,
+      relations: {
+        commentLikes: {
+          comment: true,
+        },
       },
+    });
+
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const comment = await this.dataSource.getRepository(Comment).findOne({
+      where: {
+        id: body.commentId,
       },
-  });
+      relations: {
+        commentLikes: {
+          comment: true,
+        },
+      },
+    });
 
-  if (!comment) {
-    throw new CustomError('Comment not found', HttpStatus.NOT_FOUND);
-  }
+    if (!comment) {
+      throw new CustomError('Comment not found', HttpStatus.NOT_FOUND);
+    }
 
-  await this.commentCRUDService.commentDislike(body, comment, user);
-};
+    await this.commentCRUDService.commentDislike(body, comment, user);
+  };
+
+  isPurchased = async (itemId: string, decodedToken: RefreshTokenRequest): Promise<boolean> => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const item = await this.dataSource.getRepository(Item).findOne({
+      where: {
+        id: itemId,
+      },
+    });
+
+    if (!item) {
+      throw new CustomError('Item not found', HttpStatus.NOT_FOUND);
+    }
+
+    const record = await this.dataSource
+      .getRepository(HistoricalRecord)
+      .createQueryBuilder()
+      .where('user_id = :userId', { userId: user.id })
+      .andWhere('item_id = :itemId', { itemId: item.id })
+      .getOne();
+
+    if (record) {
+      return true;
+    }
+      return false;
+  };
 }

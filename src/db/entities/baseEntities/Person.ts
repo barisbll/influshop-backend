@@ -28,6 +28,11 @@ export default class Person extends BaseEntity {
   birthDate?: Date;
 
   @Column({
+    nullable: true,
+  })
+  realName?: string;
+
+  @Column({
     unique: true,
   })
   @IsEmail()

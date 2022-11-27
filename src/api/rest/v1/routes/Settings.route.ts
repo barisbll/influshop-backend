@@ -16,5 +16,13 @@ export const createRouter = () => {
 
   router.delete('/address/:addressId', isAuth, settingsController.addressDelete);
 
+  router.get('/credit-card', isAuth, settingsController.creditCardRead);
+
+  router.post('/credit-card', isAuth, settingsController.creditCardCreate);
+
+  router.delete('/credit-card/:creditCardId', isAuth, settingsController.creditCardDelete);
+
+  // router.post('/real-name', isAuth, settingsController.realNameCreate);
+
   return router;
 };

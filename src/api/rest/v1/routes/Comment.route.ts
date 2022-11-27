@@ -18,5 +18,7 @@ export const createRouter = () => {
 
   router.post('/dislike', isAuth, commentController.commentDislike);
 
+  router.get('/is-purchased/:itemId', isAuth, commentController.isPurchased);
+
   return router;
 };

@@ -10,6 +10,7 @@ import { commentDeleteValidator } from './validators/Comment.delete.validator';
 import { commentUpdateValidator } from './validators/Comment.update.validator';
 import { commentLikeValidator } from './validators/Comment.like.validator';
 import { commentDislikeValidator } from './validators/Comment.dislike.validator';
+import { isPurchasedValidator } from './validators/Comment.isPurchased.validator';
 
 @Service()
 export class CommentController {
@@ -93,6 +94,22 @@ export class CommentController {
       );
       const message = validatedBody.isDislike ? 'Comment Successfully Disliked' : 'Comment Successfully Undisliked';
       res.json({ message }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  isPurchased = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { itemId } = req.params as { itemId: string };
+
+    try {
+      const validatedBody = await isPurchasedValidator({ itemId });
+      const isPurchased = await this.commentService.isPurchased(
+        validatedBody.itemId,
+        decodedToken,
+      );
+      res.json({ isPurchased }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

@@ -14,6 +14,7 @@ import {
 import CartItem from '../../db/entities/userRelated/CartItem';
 import FavoriteItem from '../../db/entities/userRelated/FavoriteItem';
 import Influencer from '../../db/entities/influencerRelated/Influencer';
+import CreditCard from '../../db/entities/userRelated/CreditCard';
 
 @Service()
 export class eCommerceCRUDService {
@@ -136,7 +137,7 @@ export class eCommerceCRUDService {
   };
 
   checkout = async (
-    checkoutRequest: CheckoutRequest,
+    checkoutRequest: CheckoutRequest | CreditCard,
     oldUser: User,
   ): Promise<{ message: string; isSuccessfull: boolean }> => {
     const user = clone(oldUser);
