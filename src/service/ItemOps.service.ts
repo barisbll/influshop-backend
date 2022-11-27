@@ -64,19 +64,36 @@ export class ItemOpsService {
     });
   };
 
-  itemGroupGet = async (id: string): Promise<ItemGroup> => {
+  itemGroupGet = async (id: string) => {
     const itemGroup = await this.dataSource.getRepository(ItemGroup).findOne({
       where: { id },
+      relations: {
+        influencer: true,
+      },
     });
 
     if (!itemGroup) {
       throw new CustomError('Item Group Does Not Exist', HttpStatus.NOT_FOUND);
     }
 
-    const { itemGroupName, itemGroupDescription, extraFeatures, imageLocation, isVisible } =
-      itemGroup;
+    const {
+      itemGroupName,
+      itemGroupDescription,
+      extraFeatures,
+      imageLocation,
+      isVisible,
+      influencer,
+    } = itemGroup;
 
-    return { itemGroupName, itemGroupDescription, extraFeatures, imageLocation, isVisible };
+    return {
+      itemGroupName,
+      itemGroupDescription,
+      extraFeatures,
+      imageLocation,
+      isVisible,
+      influencerName: (influencer as Influencer).username,
+      influencerId: (influencer as Influencer).id,
+    };
   };
 
   itemsGet = async (influencerName: string): Promise<MappedObject[]> => {
