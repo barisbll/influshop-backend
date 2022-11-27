@@ -24,6 +24,9 @@ export default class CreditCard {
   cardHolderName?: string;
 
   @Column()
+  cardHolderNameAnonymized?: string;
+
+  @Column()
   expirationDate?: string;
 
   @Column()

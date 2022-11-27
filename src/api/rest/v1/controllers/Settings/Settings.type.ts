@@ -18,3 +18,11 @@ export type AddressCreateRequest = {
     street?: string;
     zip?: string;
   };
+
+  export type CreditCardCreateRequest = {
+    creditCardName: string;
+    cardNumber: string;
+    cardHolderName: string;
+    expirationDate: string;
+    cvv: string;
+  };

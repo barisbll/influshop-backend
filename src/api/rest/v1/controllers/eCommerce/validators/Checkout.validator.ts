@@ -9,10 +9,10 @@ export const checkoutValidator = async (
 ) => {
   const schema = yup.object().shape({
     creditCard: yup.object().shape({
-      cardNumber: yup.string().required(),
-      cardHolderName: yup.string().required(),
-      expirationDate: yup.string().required(),
-      cvv: yup.string().required(),
+      cardNumber: yup.string().max(16).required(),
+      cardHolderName: yup.string().min(6).required(),
+      expirationDate: yup.string().length(5).required(),
+      cvv: yup.string().length(3).required(),
     }).required(),
     shippingAddress: yup.object().shape({
       addressName: yup.string().required(),
