@@ -22,7 +22,29 @@ export const createRouter = () => {
 
   router.delete('/credit-card/:creditCardId', isAuth, settingsController.creditCardDelete);
 
-  // router.post('/real-name', isAuth, settingsController.realNameCreate);
+  router.get('/user/real-name', isAuth, settingsController.realNameRead);
+
+  router.post('/user/real-name', isAuth, settingsController.realNameCreate);
+
+  router.get('/influencer/real-name', isAuth, settingsController.influencerRealNameRead);
+
+  router.post('/influencer/real-name', isAuth, settingsController.influencerRealNameCreate);
+
+  router.put('/user/username', isAuth, settingsController.userUsernameUpdate);
+
+  router.put('/influencer/username', isAuth, settingsController.influencerUsernameUpdate);
+
+  router.put('/user/email', isAuth, settingsController.userEmailUpdate);
+
+  router.put('/influencer/email', isAuth, settingsController.influencerEmailUpdate);
+
+  router.put('/user/password', isAuth, settingsController.userPasswordUpdate);
+
+  router.put('/influencer/password', isAuth, settingsController.influencerPasswordUpdate);
+
+  router.post('/user/image', isAuth, settingsController.userImageCreate);
+
+  router.post('/influencer/image', isAuth, settingsController.influencerImageCreate);
 
   return router;
 };
