@@ -12,13 +12,17 @@ import {
 import UserAddress from '../../db/entities/userRelated/UserAddress';
 import CreditCard from '../../db/entities/userRelated/CreditCard';
 import { anonymizeNames } from './Settings.helper';
+import Influencer from '../../db/entities/influencerRelated/Influencer';
+import { ImageUploader } from '../Image.service';
 
 @Service()
 export class SettingsCRUDService {
   private dataSource: DataSource;
+  private imageUploader = Container.get(ImageUploader);
 
   constructor() {
     this.dataSource = Container.get('dataSource');
+    this.imageUploader = Container.get(ImageUploader);
   }
 
   addressCreate = async (addressCreateRequest: AddressCreateRequest, oldUser: User) => {
@@ -138,5 +142,43 @@ export class SettingsCRUDService {
       .from(CreditCard)
       .where('id = :id', { id: creditCard.id })
       .execute();
+  };
+
+  realNameCreate = async (realName: string, oldUser: User) => {
+    const user = clone(oldUser);
+    user.realName = realName;
+
+    await this.dataSource.getRepository(User).save(user);
+  };
+
+  influencerRealNameCreate = async (realName: string, oldInfluencer: Influencer) => {
+    const influencer = clone(oldInfluencer);
+    influencer.realName = realName;
+
+    await this.dataSource.getRepository(Influencer).save(influencer);
+  };
+
+  userImageCreate = async (image: string, oldUser: User) => {
+    const user = clone(oldUser);
+
+    if (user?.imageLocation) {
+      await this.imageUploader.updateImage(image, 'influshop_profile_images', user?.imageLocation);
+    } else {
+      user.imageLocation = await this.imageUploader.uploadImage(image, 'influshop_profile_images');
+    }
+
+    await this.dataSource.getRepository(User).save(user);
+  };
+
+  influencerImageCreate = async (image: string, oldInfluencer: Influencer) => {
+    const influencer = clone(oldInfluencer);
+
+    if (influencer?.imageLocation) {
+      await this.imageUploader.updateImage(image, 'influshop_profile_images', influencer?.imageLocation);
+    } else {
+      influencer.imageLocation = await this.imageUploader.uploadImage(image, 'influshop_profile_images');
+    }
+
+    await this.dataSource.getRepository(Influencer).save(influencer);
   };
 }
