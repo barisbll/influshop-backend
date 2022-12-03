@@ -6,6 +6,7 @@ import { createRouter as createStarRoutes } from './Star.route';
 import { createRouter as createReportRoutes } from './Report.route';
 import { createRouter as createeCommerceRoutes } from './eCommerce.route';
 import { createRouter as createSettingsRoutes } from './Settings.route';
+import { createRouter as createSearchRoutes } from './Search.route';
 
 export const createRouter = () => {
   const router = express.Router();
@@ -17,6 +18,7 @@ export const createRouter = () => {
   router.use('/report', createReportRoutes());
   router.use('/e-commerce', createeCommerceRoutes());
   router.use('/settings', createSettingsRoutes());
+  router.use('/search', createSearchRoutes());
 
   return router;
 };
