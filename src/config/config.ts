@@ -57,6 +57,12 @@ const tempConfig = convict({
     default: 40,
     env: 'MAIN_PAGE_ITEM_LIMIT',
   },
+  searchPageItemLimit: {
+    doc: 'The pagination limit for search page',
+    format: 'int',
+    default: 10,
+    env: 'SEARCH_PAGE_ITEM_LIMIT',
+  },
   db: {
     host: {
       format: nonEmptyString('DATABASE_HOST'),
