@@ -8,8 +8,13 @@ import { MappedCommentImages, MappedComments, MappedObject } from './ItemOps.typ
 export const itemsMapper = (
   items: Item[] | undefined,
   pinnedItemId: string | undefined,
+  user: User | null,
 ): MappedObject[] => {
   const mappedItems = items?.map((item) => {
+    const favoritedItem = user?.favoriteItems?.find(
+      (favoriteItem) => (favoriteItem.item as Item).id === item.id,
+    );
+
     if (item.itemGroup) {
       const { itemGroupName, imageLocation, id } = item.itemGroup;
       return {
@@ -24,6 +29,7 @@ export const itemsMapper = (
         commentsLength: item.totalComments,
         isPinned: pinnedItemId === item.id,
         updatedAt: item.itemGroup.updatedAt,
+        isFavorite: !!favoritedItem,
       };
     }
 
@@ -39,6 +45,7 @@ export const itemsMapper = (
       commentsLength: item.totalComments,
       isPinned: pinnedItemId === item.id,
       updatedAt: item.updated_at,
+      isFavorite: !!favoritedItem,
     };
   });
 
@@ -67,6 +74,10 @@ export const itemsMapper = (
         acc[itemGroupIdx].isPinned = true;
       }
 
+      if (current.isFavorite) {
+        acc[itemGroupIdx].isFavorite = true;
+      }
+
       return acc;
     }
     return [...acc, current];
@@ -76,8 +87,13 @@ export const itemsMapper = (
 export const mainPageItemsMapper = (
   items: Item[] | undefined,
   pinnedItemId: string | undefined,
+  user: User | null,
 ): MappedObject[] => {
   const mappedItems = items?.map((item) => {
+    const favoritedItem = user?.favoriteItems?.find(
+      (favoriteItem) => (favoriteItem.item as Item).id === item.id,
+    );
+
     if (item.itemGroup) {
       const { itemGroupName, imageLocation, id } = item.itemGroup;
       return {
@@ -94,6 +110,7 @@ export const mainPageItemsMapper = (
         influencerName: item.influencer?.username,
         influencerImage: item.influencer?.imageLocation,
         updatedAt: item.itemGroup.updatedAt,
+        isFavorite: !!favoritedItem,
       };
     }
 
@@ -111,6 +128,7 @@ export const mainPageItemsMapper = (
       influencerName: item.influencer?.username,
       influencerImage: item.influencer?.imageLocation,
       updatedAt: item.updated_at,
+      isFavorite: !!favoritedItem,
     };
   });
 
@@ -137,6 +155,10 @@ export const mainPageItemsMapper = (
 
       if (current.isPinned) {
         acc[itemGroupIdx].isPinned = true;
+      }
+
+      if (current.isFavorite) {
+        acc[itemGroupIdx].isFavorite = true;
       }
 
       return acc;

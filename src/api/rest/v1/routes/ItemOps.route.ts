@@ -12,7 +12,7 @@ export const createRouter = () => {
 
   router.get('/item-groups', isAuth, itemOpsController.itemGroupsGet);
 
-  router.get('/items/:influencerName', itemOpsController.itemsGet);
+  router.get('/items/:influencerName', optionalIsAuth, itemOpsController.itemsGet);
 
   router.get('/main-page-items/:pageId', optionalIsAuth, itemOpsController.mainPageItemsGet);
 

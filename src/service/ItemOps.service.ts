@@ -96,7 +96,10 @@ export class ItemOpsService {
     };
   };
 
-  itemsGet = async (influencerName: string): Promise<MappedObject[]> => {
+  itemsGet = async (
+    influencerName: string,
+    decodedToken: RefreshTokenRequest | undefined,
+  ): Promise<MappedObject[]> => {
     const influencer = await this.dataSource.getRepository(Influencer).findOne({
       where: { username: influencerName },
       relations: {
@@ -114,7 +117,23 @@ export class ItemOpsService {
       throw new CustomError('The Influencer Does Not Exist', HttpStatus.NOT_FOUND);
     }
 
-    return itemsMapper(influencer.items, influencer?.pinnedItem?.id);
+    let user: User | null = null;
+    if (decodedToken) {
+      user = await this.dataSource.getRepository(User).findOne({
+        where: { id: decodedToken.id },
+        relations: {
+          favoriteItems: {
+            item: true,
+          },
+        },
+      });
+
+      if (!user) {
+        throw new CustomError('The User Does Not Exist', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    return itemsMapper(influencer.items, influencer?.pinnedItem?.id, user);
   };
 
   mainPageItemsGet = async (decodedToken: RefreshTokenRequest | undefined, pageId: number) => {
@@ -122,6 +141,11 @@ export class ItemOpsService {
     if (decodedToken) {
       user = await this.dataSource.getRepository(User).findOne({
         where: { id: decodedToken.id },
+        relations: {
+          favoriteItems: {
+            item: true,
+          },
+        },
       });
 
       if (!user) {
@@ -142,7 +166,7 @@ export class ItemOpsService {
       take: config.mainPageItemLimit,
     });
 
-    return mainPageItemsMapper(result, 'undefined-uuid');
+    return mainPageItemsMapper(result, 'undefined-uuid', user);
   };
 
   itemGet = async (
@@ -474,6 +498,7 @@ export class ItemOpsService {
       where: { id: body.itemId },
       relations: {
         images: true,
+        influencer: true,
       },
     });
 

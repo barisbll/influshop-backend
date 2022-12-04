@@ -11,6 +11,7 @@ export interface MappedObject {
   averageStars: number | undefined;
   commentsLength: number;
   isPinned: boolean;
+  isFavorite: boolean;
 }
 
 export type MappedCommentImages = {

@@ -53,8 +53,9 @@ export class ItemOpsController {
     }
   };
 
-  itemsGet = async (req: Request, res: Response, next: NextFunction) => {
+  itemsGet = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const influencerName = req.params as { influencerName: string };
+    const decodedToken = req.decodedToken as RefreshTokenRequest | undefined;
 
     if (!influencerName) {
       next(
@@ -64,7 +65,7 @@ export class ItemOpsController {
 
     try {
       const validatedBody = (await itemsGetValidator(influencerName)) as { influencerName: string };
-      const items = await this.itemOps.itemsGet(validatedBody.influencerName);
+      const items = await this.itemOps.itemsGet(validatedBody.influencerName, decodedToken);
       res.json({ message: 'Items Successfully Retrieved', items }).status(HttpStatus.OK);
     } catch (err) {
       next(err);

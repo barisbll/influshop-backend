@@ -78,13 +78,20 @@ export class ItemService {
         throw new CustomError('Extra Features Do Not Cover All Extra Features Of Item Group');
       }
 
+      if (value.trim() === '') {
+        throw new CustomError('Extra Feature Value Cannot Be Empty', HttpStatus.BAD_REQUEST, {
+          key,
+          value,
+        });
+      }
+
       if (itemGroupExtraFeatures.get(key)?.includes(value)) {
         alreadyIncludedFeatureCounter += 1;
       }
 
       // Check if itemGroup extra features need to be extended
       if (!itemGroupExtraFeatures.get(key)?.includes(value)) {
-        itemGroupExtraFeatures.get(key)?.push(value);
+        itemGroupExtraFeatures.get(key)?.push(value.trim());
       }
     });
 
@@ -339,6 +346,15 @@ export class ItemService {
       updatedFeatures.itemGroup = newItemGroup;
     }
 
+    if (body.isPinned) {
+      const influencer = await Influencer.findOne({ where: { id: item.influencer?.id } });
+      if (!influencer) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+      influencer.pinnedItem = item;
+      await influencer.save();
+    }
+
     if (body.itemImages) {
       const oldItemImages = item.images;
 
@@ -413,6 +429,15 @@ export class ItemService {
 
     if (body.itemDescription) {
       updatedFeatures.itemDescription = body.itemDescription;
+    }
+
+    if (body.isPinned) {
+      const influencer = await Influencer.findOne({ where: { id: item.influencer?.id } });
+      if (!influencer) {
+        throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+      }
+      influencer.pinnedItem = item;
+      await influencer.save();
     }
 
     if (body.itemImages) {
@@ -524,12 +549,12 @@ export class ItemService {
     item.images?.forEach(async (itemImage) => {
       await this.imageUploader.deleteImage(itemImage.imageLocation as string);
       await this.dataSource
-      .getRepository(ItemImage)
-      .createQueryBuilder()
-      .delete()
-      .from(ItemImage)
-      .where('id = :id', { id: itemImage.id })
-      .execute();
+        .getRepository(ItemImage)
+        .createQueryBuilder()
+        .delete()
+        .from(ItemImage)
+        .where('id = :id', { id: itemImage.id })
+        .execute();
     });
 
     await itemSoftDeleteOperations(item, this.dataSource);
@@ -555,12 +580,12 @@ export class ItemService {
     item.images?.forEach(async (itemImage) => {
       await this.imageUploader.deleteImage(itemImage.imageLocation as string);
       await this.dataSource
-      .getRepository(ItemImage)
-      .createQueryBuilder()
-      .delete()
-      .from(ItemImage)
-      .where('id = :id', { id: itemImage.id })
-      .execute();
+        .getRepository(ItemImage)
+        .createQueryBuilder()
+        .delete()
+        .from(ItemImage)
+        .where('id = :id', { id: itemImage.id })
+        .execute();
     });
 
     await itemSoftDeleteOperations(item, this.dataSource);
