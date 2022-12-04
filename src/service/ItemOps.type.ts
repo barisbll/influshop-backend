@@ -34,7 +34,7 @@ export interface ItemGetResult {
   name: string;
   description: string;
   price: number;
-  available: boolean;
+  quantity: number;
   averageStars: number | undefined;
   totalComments: number;
   comments: MappedComments[] | undefined;

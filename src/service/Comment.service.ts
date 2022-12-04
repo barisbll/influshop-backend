@@ -70,6 +70,7 @@ export class CommentService {
       .createQueryBuilder()
       .where('user_id = :userId', { userId: user.id })
       .andWhere('item_id = :itemId', { itemId: item.id })
+      .andWhere('is_purchase_completed = true')
       .getOne();
 
     if (!record) {

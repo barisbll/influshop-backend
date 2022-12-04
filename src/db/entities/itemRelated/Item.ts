@@ -31,7 +31,7 @@ export default class Item {
   itemName?: string;
 
   @Column({
-    nullable: true,
+    default: 1,
   })
   @Min(0)
   @Max(50000)

@@ -80,6 +80,10 @@ export class eCommerceService {
       throw new CustomError('Item not found', HttpStatus.NOT_FOUND);
     }
 
+    if (item?.itemQuantity as number < 1) {
+      throw new CustomError('Item out of stock', HttpStatus.BAD_REQUEST);
+    }
+
     await this.eCommerceCRUDService.addToCart(addToCartRequest, user, item);
   };
 

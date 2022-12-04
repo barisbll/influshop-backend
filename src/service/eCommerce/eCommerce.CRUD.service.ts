@@ -146,7 +146,7 @@ export class eCommerceCRUDService {
       throw new CustomError('Cart is empty', HttpStatus.BAD_REQUEST);
     }
 
-    const isTransferSuccessfull = Math.random() > 0.75;
+    const isTransferSuccessfull = Math.random() > 0.25;
 
     if (!isTransferSuccessfull) {
       // Transfer failed
