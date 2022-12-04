@@ -9,7 +9,7 @@ export const userReportCreateValidator = async (
   userReportCreateRequest: UserReportCreateRequest,
 ) => {
   const schema = yup.object().shape({
-    userId: yup.string().uuid().required(),
+    username: yup.string().required(),
     reason: yup
       .mixed<UserReportEnum>()
       .oneOf(Object.values(UserReportEnum))

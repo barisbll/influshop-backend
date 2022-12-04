@@ -55,14 +55,14 @@ export type CommentReportInspectRequest = {
 
 // User Report
 export type UserReportCreateRequest = {
-    userId: string;
+    username: string;
     reason: UserReportEnum;
     isReporterUser: boolean;
     isReport: boolean;
 };
 
 export type UserReportReadRequest = {
-    userId: string;
+    username: string;
     isReaderUser: boolean;
 };
 
@@ -74,20 +74,20 @@ export type UserReportAdminReadRequest = {
 };
 
 export type UserReportInspectRequest = {
-    userId: string;
+    username: string;
     isApprove: boolean;
 };
 
 // Influencer Report
 export type InfluencerReportCreateRequest = {
-    influencerId: string;
+    username: string;
     reason: InfluencerReportEnum;
     isReporterUser: boolean;
     isReport: boolean;
 };
 
 export type InfluencerReportReadRequest = {
-    influencerId: string;
+    username: string;
     isReaderUser: boolean;
 };
 
@@ -99,6 +99,6 @@ export type InfluencerReportAdminReadRequest = {
 };
 
 export type InfluencerReportInspectRequest = {
-    influencerId: string;
+    username: string;
     isApprove: boolean;
 };

@@ -4,11 +4,11 @@ import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
 export const influencerReportReadValidator = async (reportReadRequest: {
-  influencerId: string;
+  username: string;
   isReaderUser: boolean;
 }) => {
   const schema = yup.object().shape({
-    influencerId: yup.string().uuid().required(),
+    username: yup.string().required(),
     isReaderUser: yup.boolean().required(),
   });
 

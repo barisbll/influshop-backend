@@ -11,7 +11,10 @@ import {
   CommentReportInspectRequest,
   UserReportCreateRequest,
   UserReportReadRequest,
+  UserReportInspectRequest,
   InfluencerReportCreateRequest,
+  InfluencerReportReadRequest,
+  InfluencerReportInspectRequest,
 } from '../../api/rest/v1/controllers/Report/Report.type';
 import User from '../../db/entities/userRelated/User';
 import Item from '../../db/entities/itemRelated/Item';
@@ -26,17 +29,23 @@ import CommentReport from '../../db/entities/itemRelated/CommentReport';
 import { CommentCRUDService } from '../CommentCRUD.service';
 import UserReport from '../../db/entities/userRelated/UserReport';
 import InfluencerReport from '../../db/entities/influencerRelated/InfluencerReport';
+import { UserService } from '../User.service';
+import { InfluencerService } from '../Influencer.service';
 
 @Service()
 export class ReportCRUDService {
   private dataSource: DataSource;
   private itemService: ItemService;
   private commentCRUDService: CommentCRUDService;
+  private userService: UserService;
+  private influencerService: InfluencerService;
 
   constructor() {
     this.dataSource = Container.get('dataSource');
     this.itemService = Container.get(ItemService);
     this.commentCRUDService = Container.get(CommentCRUDService);
+    this.userService = Container.get(UserService);
+    this.influencerService = Container.get(InfluencerService);
   }
 
   itemReportRead = async (
@@ -396,10 +405,10 @@ export class ReportCRUDService {
       userReport.report = body.reason;
       const createdUserReport = await this.dataSource.getRepository(UserReport).save(userReport);
 
-      user.userReports = [...(user.commentReports || []), userReport];
+      user.selfReports = [...(user.userReports || []), userReport];
       await this.dataSource.getRepository(User).save(user);
 
-      client.userReports = [...(user.userReports || []), userReport];
+      client.userReports = [...(client.userReports || []), userReport];
       if (body.isReporterUser) {
         await this.dataSource.getRepository(User).save(client);
       } else {
@@ -437,7 +446,62 @@ export class ReportCRUDService {
     return deletedUserReport.id as string;
   };
 
+  userReportInspect = async (
+    body: UserReportInspectRequest,
+    oldUser: User,
+    oldAdmin: Admin,
+  ): Promise<string> => {
+    const user = clone(oldUser);
+    const admin = clone(oldAdmin);
+
+    if (body.isApprove) {
+      user.selfReports?.forEach(async (oldUserReport) => {
+        const userReport = clone(oldUserReport);
+        userReport.isReportControlled = true;
+        userReport.admin = admin;
+        userReport.isApproved = true;
+        await this.dataSource.getRepository(UserReport).save(userReport);
+      });
+      return user.id as string;
+    }
+    // delete item
+    user.selfReports?.forEach(async (oldUserReport) => {
+      const userReport = clone(oldUserReport);
+      userReport.isReportControlled = true;
+      userReport.admin = admin;
+      userReport.isApproved = false;
+      await this.dataSource.getRepository(UserReport).save(userReport);
+    });
+
+    try {
+      await this.userService.deleteUser(user);
+      return user.id as string;
+    } catch (error) {
+      logger.error(error);
+      throw new CustomError('User Delete Failed', HttpStatus.INTERNAL_SERVER_ERROR, error);
+    }
+  };
+
   // Influencer Report
+  influencerReportRead = async (
+    body: InfluencerReportReadRequest,
+    client: User | Influencer,
+    influencer: Influencer,
+  ): Promise<Partial<UserReport> | undefined> => {
+    // Find the influencer report inside the client
+    const influencerReport = (client?.influencerReports as InfluencerReport[]).find(
+      (clientInfluencerReport) =>
+        (clientInfluencerReport.reportedInfluencer as Influencer)?.id === influencer?.id,
+    );
+    if (!influencerReport) {
+      return undefined;
+    }
+    const { id, report, isReportControlled, admin, updatedAt } =
+      influencerReport as InfluencerReport;
+
+    return { id, report, isReportControlled, admin, updatedAt };
+  };
+
   createInfluencerReport = async (
     body: InfluencerReportCreateRequest,
     oldClient: User | Influencer,
@@ -469,7 +533,7 @@ export class ReportCRUDService {
       // Create new InfluencerReport
       const influencerReport = new InfluencerReport();
       if (body.isReporterUser) {
-        influencerReport.reporterInfluencer = client as User;
+        influencerReport.reporterUser = client as User;
       } else {
         influencerReport.reporterInfluencer = client as Influencer;
       }
@@ -480,12 +544,12 @@ export class ReportCRUDService {
         .getRepository(InfluencerReport)
         .save(influencerReport);
 
-      influencer.influencerReports = [...(influencer.commentReports || []), influencerReport];
+      influencer.selfReports = [...(influencer.influencerReports || []), influencerReport];
       await this.dataSource.getRepository(Influencer).save(influencer);
 
-      client.influencerReports = [...(influencer.influencerReports || []), influencerReport];
+      client.influencerReports = [...(client.influencerReports || []), influencerReport];
       if (body.isReporterUser) {
-        await this.dataSource.getRepository(Influencer).save(client);
+        await this.dataSource.getRepository(User).save(client);
       } else {
         await this.dataSource.getRepository(Influencer).save(client);
       }
@@ -520,5 +584,41 @@ export class ReportCRUDService {
       .getRepository(InfluencerReport)
       .remove(existingInfluencerReport);
     return deletedInfluencerReport.id as string;
+  };
+
+  influencerReportInspect = async (
+    body: InfluencerReportInspectRequest,
+    oldInfluencer: Influencer,
+    oldAdmin: Admin,
+  ): Promise<string> => {
+    const influencer = clone(oldInfluencer);
+    const admin = clone(oldAdmin);
+
+    if (body.isApprove) {
+      influencer.selfReports?.forEach(async (oldInfluencerReport) => {
+        const influencerReport = clone(oldInfluencerReport);
+        influencerReport.isReportControlled = true;
+        influencerReport.admin = admin;
+        influencerReport.isApproved = true;
+        await this.dataSource.getRepository(InfluencerReport).save(influencerReport);
+      });
+      return influencer.id as string;
+    }
+    // delete item
+    influencer.selfReports?.forEach(async (oldInfluencerReport) => {
+      const influencerReport = clone(oldInfluencerReport);
+      influencerReport.isReportControlled = true;
+      influencerReport.admin = admin;
+      influencerReport.isApproved = false;
+      await this.dataSource.getRepository(InfluencerReport).save(influencerReport);
+    });
+
+    try {
+      await this.influencerService.deleteInfluencer(influencer);
+      return influencer.id as string;
+    } catch (error) {
+      logger.error(error);
+      throw new CustomError('Influencer Delete Failed', HttpStatus.INTERNAL_SERVER_ERROR, error);
+    }
   };
 }

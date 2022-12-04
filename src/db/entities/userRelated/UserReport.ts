@@ -31,8 +31,7 @@ export default class UserReport {
   report?: string;
 
   @Column({
-    default: null,
-    nullable: true,
+    default: false,
   })
   isReportControlled?: boolean;
 

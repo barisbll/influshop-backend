@@ -15,17 +15,23 @@ import { SettingsCRUDService } from './Settings.CRUD.service';
 import UserAddress from '../../db/entities/userRelated/UserAddress';
 import Influencer from '../../db/entities/influencerRelated/Influencer';
 import { AuthService } from '../Auth.service';
+import { UserService } from '../User.service';
+import { InfluencerService } from '../Influencer.service';
 
 @Service()
 export class SettingsService {
   private dataSource: DataSource;
   private settingsCRUDService: SettingsCRUDService;
   private authService: AuthService;
+  private userService: UserService;
+  private influencerService: InfluencerService;
 
   constructor() {
     this.dataSource = Container.get('dataSource');
     this.settingsCRUDService = Container.get(SettingsCRUDService);
     this.authService = Container.get(AuthService);
+    this.userService = Container.get(UserService);
+    this.influencerService = Container.get(InfluencerService);
   }
 
   addressRead = async (decodedToken: RefreshTokenRequest) => {
@@ -363,9 +369,7 @@ export class SettingsService {
       throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
     }
 
-    const isEmailUnique = await this.authService.isEmailUnique(
-      emailUpdateRequest.email,
-    );
+    const isEmailUnique = await this.authService.isEmailUnique(emailUpdateRequest.email);
 
     if (!isEmailUnique) {
       throw new CustomError('Email is already taken', HttpStatus.BAD_REQUEST);
@@ -389,9 +393,7 @@ export class SettingsService {
       throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
     }
 
-    const isEmailUnique = await this.authService.isEmailUnique(
-      emailUpdateRequest.email,
-    );
+    const isEmailUnique = await this.authService.isEmailUnique(emailUpdateRequest.email);
 
     if (!isEmailUnique) {
       throw new CustomError('Email is already taken', HttpStatus.BAD_REQUEST);
@@ -471,5 +473,63 @@ export class SettingsService {
     }
 
     await this.settingsCRUDService.influencerImageCreate(imageCreateRequest.image, influencer);
+  };
+
+  userDelete = async (decodedToken: RefreshTokenRequest) => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        commentLikes: true,
+        comments: {
+          commentImages: true,
+          commentLikes: true,
+          commentReports: true,
+        },
+        addresses: true,
+        creditCards: true,
+        cartItems: true,
+        favoriteItems: true,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.userService.deleteUser(user);
+  };
+
+  influencerDelete = async (decodedToken: RefreshTokenRequest) => {
+    const influencer = await this.dataSource.getRepository(Influencer).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+      relations: {
+        items: {
+          images: true,
+          itemGroup: {
+            items: true,
+          },
+          comments: {
+            commentLikes: true,
+            commentImages: true,
+            commentReports: true,
+          },
+          cartItems: true,
+          itemStars: true,
+          itemReports: true,
+        },
+        categories: true,
+        addresses: true,
+      },
+    });
+
+    if (!influencer) {
+      throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.influencerService.deleteInfluencer(influencer);
   };
 }

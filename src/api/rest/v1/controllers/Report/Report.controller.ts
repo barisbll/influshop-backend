@@ -17,8 +17,11 @@ import {
   UserReportCreateRequest,
   UserReportReadRequest,
   UserReportAdminReadRequest,
+  UserReportInspectRequest,
   InfluencerReportCreateRequest,
-
+  InfluencerReportReadRequest,
+  InfluencerReportAdminReadRequest,
+  InfluencerReportInspectRequest,
 } from './Report.type';
 import { itemReportReadValidator } from './validators/ItemReport.read.validator';
 import { itemReportsReadValidator } from './validators/ItemReports.read.validator';
@@ -32,6 +35,10 @@ import { userReportCreateValidator } from './validators/UserReport.create.valida
 import { userReportReadValidator } from './validators/UserReport.read.validator';
 import { userReportAdminReadValidator } from './validators/UserReportAdmin.read.validator';
 import { influencerReportCreateValidator } from './validators/InfluencerReport.create.validator';
+import { userReportInspectValidator } from './validators/UserReport.inspect.validator';
+import { influencerReportReadValidator } from './validators/InfluencerReport.read.validator';
+import { influencerReportAdminReadValidator } from './validators/InfluencerReportAdmin.read.validator';
+import { influencerReportInspectValidator } from './validators/InfluencerReport.inspect.validator';
 
 @Service()
 export class ReportController {
@@ -275,7 +282,9 @@ export class ReportController {
     try {
       const validatedBody = await commentReportInspectValidator(commentReportInspectRequest);
       const commentId = await this.reportService.commentReportInspect(validatedBody, decodedToken);
-      res.json({ message: 'Comment Report Successfully Completed', commentId }).status(HttpStatus.OK);
+      res
+        .json({ message: 'Comment Report Successfully Completed', commentId })
+        .status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
@@ -315,14 +324,10 @@ export class ReportController {
 
     try {
       const validatedBody = await itemReportsReadValidator({ pageId });
-      const userReports = await this.reportService.userReportsRead(
-        validatedBody,
-        decodedToken,
-      );
+      const userReports = await this.reportService.userReportsRead(validatedBody, decodedToken);
       res
         .json({
-          message:
-            userReports.length !== 0 ? 'User Reports Fetched' : 'User Reports Not Found',
+          message: userReports.length !== 0 ? 'User Reports Fetched' : 'User Reports Not Found',
           userReports,
         })
         .status(HttpStatus.OK);
@@ -393,7 +398,119 @@ export class ReportController {
     }
   };
 
+  userReportInspect = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const userReportInspectRequest = req.body as UserReportInspectRequest;
+
+    try {
+      const validatedBody = await userReportInspectValidator(userReportInspectRequest);
+      const userId = await this.reportService.userReportInspect(validatedBody, decodedToken);
+      res.json({ message: 'User Report Successfully Completed', userId }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // Influencer Report
+  influencerReportRead = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const influencerReportReadRequest = req.body as InfluencerReportReadRequest;
+
+    try {
+      const validatedBody = await influencerReportReadValidator(influencerReportReadRequest);
+
+      const influencerReport = await this.reportService.influencerReportRead(
+        validatedBody,
+        decodedToken,
+      );
+      res
+        .json({
+          message: influencerReport ? 'Influencer Report Fetched' : 'Influencer Report Not Found',
+          influencerReport,
+        })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  influencerReportsRead = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { pageId } = req.params;
+
+    try {
+      const validatedBody = await itemReportsReadValidator({ pageId });
+      const influencerReports = await this.reportService.influencerReportsRead(
+        validatedBody,
+        decodedToken,
+      );
+      res
+        .json({
+          message:
+            influencerReports.length !== 0 ? 'User Reports Fetched' : 'User Reports Not Found',
+          influencerReports,
+        })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  influencerReportAdminRead = async (
+    req: ExtendedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const { influencerId, pageId } = req.params;
+    let { isApproved } = req.query as Partial<InfluencerReportAdminReadRequest>;
+    const { isControlled } = req.query as Partial<InfluencerReportAdminReadRequest>;
+
+    isApproved = isApproved ?? null;
+
+    if (isApproved === 'true') {
+      isApproved = true;
+    }
+    if (isApproved === 'false') {
+      isApproved = false;
+    }
+
+    const validationParams: any = {
+      influencerId,
+      pageId,
+    };
+
+    if (isControlled) {
+      validationParams.isControlled = isControlled;
+    }
+
+    try {
+      const validatedBody = (await influencerReportAdminReadValidator(
+        validationParams,
+      )) as InfluencerReportAdminReadRequest;
+      const influencerReports = await this.reportService.influencerReportAdminRead(
+        { ...validatedBody, isApproved },
+        decodedToken,
+      );
+      res
+        .json({
+          message: 'Influencer fetched',
+          influencerReports,
+        })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   influencerReportCreate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
     const influencerReportCreateRequest = req.body as InfluencerReportCreateRequest;
@@ -402,7 +519,25 @@ export class ReportController {
       const validatedBody = await influencerReportCreateValidator(influencerReportCreateRequest);
       const reportId = await this.reportService.influencerReportCreate(validatedBody, decodedToken);
       res
-        .json({ message: 'Influencer Report Successfully Completed', influencerReport: reportId })
+        .json({ message: 'Influencer Report Successfully Completed', userReport: reportId })
+        .status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  influencerReportInspect = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+    const influencerReportInspectRequest = req.body as InfluencerReportInspectRequest;
+
+    try {
+      const validatedBody = await influencerReportInspectValidator(influencerReportInspectRequest);
+      const influencerId = await this.reportService.influencerReportInspect(
+        validatedBody,
+        decodedToken,
+      );
+      res
+        .json({ message: 'Influencer Report Successfully Completed', influencerId })
         .status(HttpStatus.OK);
     } catch (err) {
       next(err);
