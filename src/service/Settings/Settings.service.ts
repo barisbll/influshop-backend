@@ -195,7 +195,8 @@ export class SettingsService {
       });
     }
 
-    await this.settingsCRUDService.creditCardCreate(creditCardCreateRequest, user);
+    const cartId = await this.settingsCRUDService.creditCardCreate(creditCardCreateRequest, user);
+    return cartId;
   };
 
   creditCardDelete = async (

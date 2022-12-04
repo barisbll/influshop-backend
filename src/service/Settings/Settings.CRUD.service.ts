@@ -123,7 +123,8 @@ export class SettingsCRUDService {
 
     user.creditCards = [...(user.creditCards || []), creditCard];
     await this.dataSource.getRepository(User).save(user);
-    await this.dataSource.getRepository(CreditCard).save(creditCard);
+    const savedCreditCard = await this.dataSource.getRepository(CreditCard).save(creditCard);
+    return savedCreditCard.id;
   };
 
   creditCardDelete = async (oldCreditCard: CreditCard, oldUser: User) => {

@@ -107,8 +107,10 @@ export class SettingsController {
       const validatedBody = (await creditCardCreateValidator(
         creditCardCreateRequest,
       )) as unknown as CreditCardCreateRequest;
-      await this.settingsService.creditCardCreate(validatedBody, decodedToken);
-      res.json({ message: 'Credit Card Successfully Added' }).status(HttpStatus.OK);
+      const cartId = await this.settingsService.creditCardCreate(validatedBody, decodedToken);
+      res
+        .json({ message: 'Credit Card Successfully Added', creditCardId: cartId })
+        .status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
