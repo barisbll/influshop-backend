@@ -4,11 +4,11 @@ import logger from '../../../../../../config/logger';
 import { CustomError } from '../../../../../../util/CustomError';
 
 export const userReportReadValidator = async (reportReadRequest: {
-  userId: string;
+  username: string;
   isReaderUser: boolean;
 }) => {
   const schema = yup.object().shape({
-    userId: yup.string().uuid().required(),
+    username: yup.string().required(),
     isReaderUser: yup.boolean().required(),
   });
 

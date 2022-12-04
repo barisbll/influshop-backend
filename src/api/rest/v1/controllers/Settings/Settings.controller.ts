@@ -147,9 +147,9 @@ export class SettingsController {
     const realNameCreateRequest = req.body as { realName: string };
 
     try {
-      const validatedBody = (await realNameCreateValidator(
-        realNameCreateRequest,
-      )) as unknown as { realName: string };
+      const validatedBody = (await realNameCreateValidator(realNameCreateRequest)) as unknown as {
+        realName: string;
+      };
       await this.settingsService.realNameCreate(validatedBody, decodedToken);
       res.json({ message: 'Real Name Successfully Added' }).status(HttpStatus.OK);
     } catch (err) {
@@ -173,9 +173,9 @@ export class SettingsController {
     const realNameCreateRequest = req.body as { realName: string };
 
     try {
-      const validatedBody = (await realNameCreateValidator(
-        realNameCreateRequest,
-      )) as unknown as { realName: string };
+      const validatedBody = (await realNameCreateValidator(realNameCreateRequest)) as unknown as {
+        realName: string;
+      };
       await this.settingsService.influencerRealNameCreate(validatedBody, decodedToken);
       res.json({ message: 'Real Name Successfully Added' }).status(HttpStatus.OK);
     } catch (err) {
@@ -188,9 +188,9 @@ export class SettingsController {
     const usernameUpdateRequest = req.body as { username: string };
 
     try {
-      const validatedBody = (await usernameUpdateValidator(
-        usernameUpdateRequest,
-      )) as unknown as { username: string };
+      const validatedBody = (await usernameUpdateValidator(usernameUpdateRequest)) as unknown as {
+        username: string;
+      };
       await this.settingsService.userUsernameUpdate(validatedBody, decodedToken);
       res.json({ message: 'Username Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
@@ -203,9 +203,9 @@ export class SettingsController {
     const usernameUpdateRequest = req.body as { username: string };
 
     try {
-      const validatedBody = (await usernameUpdateValidator(
-        usernameUpdateRequest,
-      )) as unknown as { username: string };
+      const validatedBody = (await usernameUpdateValidator(usernameUpdateRequest)) as unknown as {
+        username: string;
+      };
       await this.settingsService.influencerUsernameUpdate(validatedBody, decodedToken);
       res.json({ message: 'Username Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
@@ -218,9 +218,9 @@ export class SettingsController {
     const emailUpdateRequest = req.body as { email: string };
 
     try {
-      const validatedBody = (await emailUpdateValidator(
-        emailUpdateRequest,
-      )) as unknown as { email: string };
+      const validatedBody = (await emailUpdateValidator(emailUpdateRequest)) as unknown as {
+        email: string;
+      };
       await this.settingsService.userEmailUpdate(validatedBody, decodedToken);
       res.json({ message: 'Email Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
@@ -233,9 +233,9 @@ export class SettingsController {
     const emailUpdateRequest = req.body as { email: string };
 
     try {
-      const validatedBody = (await emailUpdateValidator(
-        emailUpdateRequest,
-      )) as unknown as { email: string };
+      const validatedBody = (await emailUpdateValidator(emailUpdateRequest)) as unknown as {
+        email: string;
+      };
       await this.settingsService.influencerEmailUpdate(validatedBody, decodedToken);
       res.json({ message: 'Email Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
@@ -248,9 +248,9 @@ export class SettingsController {
     const passwordUpdateRequest = req.body as { password: string };
 
     try {
-      const validatedBody = (await passwordUpdateValidator(
-        passwordUpdateRequest,
-      )) as unknown as { password: string };
+      const validatedBody = (await passwordUpdateValidator(passwordUpdateRequest)) as unknown as {
+        password: string;
+      };
       await this.settingsService.userPasswordUpdate(validatedBody, decodedToken);
       res.json({ message: 'Password Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
@@ -263,9 +263,9 @@ export class SettingsController {
     const passwordUpdateRequest = req.body as { password: string };
 
     try {
-      const validatedBody = (await passwordUpdateValidator(
-        passwordUpdateRequest,
-      )) as unknown as { password: string };
+      const validatedBody = (await passwordUpdateValidator(passwordUpdateRequest)) as unknown as {
+        password: string;
+      };
       await this.settingsService.influencerPasswordUpdate(validatedBody, decodedToken);
       res.json({ message: 'Password Successfully Updated' }).status(HttpStatus.OK);
     } catch (err) {
@@ -278,9 +278,9 @@ export class SettingsController {
     const imageCreateRequest = req.body as { image: string };
 
     try {
-      const validatedBody = (await imageCreateValidator(
-        imageCreateRequest,
-      )) as unknown as { image: string };
+      const validatedBody = (await imageCreateValidator(imageCreateRequest)) as unknown as {
+        image: string;
+      };
       await this.settingsService.userImageCreate(validatedBody, decodedToken);
       res.json({ message: 'Image Successfully Added' }).status(HttpStatus.OK);
     } catch (err) {
@@ -293,11 +293,33 @@ export class SettingsController {
     const imageCreateRequest = req.body as { image: string };
 
     try {
-      const validatedBody = (await imageCreateValidator(
-        imageCreateRequest,
-      )) as unknown as { image: string };
+      const validatedBody = (await imageCreateValidator(imageCreateRequest)) as unknown as {
+        image: string;
+      };
       await this.settingsService.influencerImageCreate(validatedBody, decodedToken);
       res.json({ message: 'Image Successfully Added' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  userDelete = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      await this.settingsService.userDelete(decodedToken);
+      res.json({ message: 'User Successfully Deleted' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  influencerDelete = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      await this.settingsService.influencerDelete(decodedToken);
+      res.json({ message: 'Influencer Successfully Deleted' }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }

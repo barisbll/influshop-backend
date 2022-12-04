@@ -1,6 +1,13 @@
 /* eslint-disable no-unused-vars */
 import {
-  Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import Admin from '../adminRelated/Admin';
@@ -44,6 +51,9 @@ export default class ItemReport {
 
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @ManyToOne(() => Item, (item) => item.itemReports)
   item?: Item;

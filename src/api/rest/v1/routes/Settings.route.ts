@@ -46,5 +46,9 @@ export const createRouter = () => {
 
   router.post('/influencer/image', isAuth, settingsController.influencerImageCreate);
 
+  router.delete('/user', isAuth, settingsController.userDelete);
+
+  router.delete('/influencer', isAuth, settingsController.influencerDelete);
+
   return router;
 };

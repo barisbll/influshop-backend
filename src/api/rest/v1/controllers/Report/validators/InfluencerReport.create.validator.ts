@@ -9,7 +9,7 @@ export const influencerReportCreateValidator = async (
     influencerReportCreateRequest: InfluencerReportCreateRequest,
 ) => {
   const schema = yup.object().shape({
-    influencerId: yup.string().uuid().required(),
+    username: yup.string().required(),
     reason: yup
       .mixed<InfluencerReportEnum>()
       .oneOf(Object.values(InfluencerReportEnum))

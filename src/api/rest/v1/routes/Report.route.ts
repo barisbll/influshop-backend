@@ -39,10 +39,18 @@ export const createRouter = () => {
 
   router.post('/user/create', isAuth, reportController.userReportCreate);
 
-  // TODO: Implement user report inspect
+  router.post('/user/inspect', isAuth, reportController.userReportInspect);
 
   // Influencer Reports
+  router.post('/influencer/read', isAuth, reportController.influencerReportRead);
+
+  router.get('/influencers/read/:pageId', isAuth, reportController.influencerReportsRead);
+
+  router.get('/influencer/read/:influencerId/:pageId', isAuth, reportController.influencerReportAdminRead);
+
   router.post('/influencer/create', isAuth, reportController.influencerReportCreate);
+
+  router.post('/influencer/inspect', isAuth, reportController.influencerReportInspect);
 
   return router;
 };

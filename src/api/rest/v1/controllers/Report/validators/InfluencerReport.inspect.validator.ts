@@ -8,7 +8,7 @@ export const influencerReportInspectValidator = async (
     influencerReportInspectRequest: InfluencerReportInspectRequest,
 ) => {
   const schema = yup.object().shape({
-    influencerId: yup.string().uuid().required(),
+    username: yup.string().required(),
     isApprove: yup.boolean().required(),
   });
 
