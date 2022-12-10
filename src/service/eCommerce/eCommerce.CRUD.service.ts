@@ -180,7 +180,7 @@ export class eCommerceCRUDService {
       await this.dataSource.getRepository(HistoricalRecord).save(historicalRecord);
 
       // eslint-disable-next-line no-param-reassign
-      ((cartItem?.item as Item).itemQuantity as number) -= 1;
+      ((cartItem?.item as Item).itemQuantity as number) -= cartItem?.quantity as number;
       await this.dataSource.getRepository(Item).save(cartItem?.item as Item);
     });
 

@@ -44,8 +44,9 @@ export class eCommerceService {
       user.cartItems?.map((cartItem) => ({
         id: cartItem.item?.id,
         itemName: cartItem.item?.itemName,
-        quantity: cartItem.quantity,
+        itemQuantity: cartItem.quantity,
         image: cartItem.item?.images?.[0].imageLocation,
+        itemPrice: cartItem.item?.itemPrice,
       })) || []
     );
   };
@@ -80,8 +81,8 @@ export class eCommerceService {
       throw new CustomError('Item not found', HttpStatus.NOT_FOUND);
     }
 
-    if (item?.itemQuantity as number < 1) {
-      throw new CustomError('Item out of stock', HttpStatus.BAD_REQUEST);
+    if ((item?.itemQuantity as number) - addToCartRequest.quantity < 0) {
+      throw new CustomError('Item quantity is less than requested quantity', HttpStatus.BAD_REQUEST);
     }
 
     await this.eCommerceCRUDService.addToCart(addToCartRequest, user, item);
