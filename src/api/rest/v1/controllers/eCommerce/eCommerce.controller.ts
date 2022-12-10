@@ -25,7 +25,11 @@ export class eCommerceController {
 
     try {
       const cartItems = await this.service.getItems(decodedToken);
-      res.status(HttpStatus.OK).json(cartItems);
+      const totalPrice = cartItems.reduce(
+        (acc, item) => acc + (item?.itemPrice as number) * (item?.itemQuantity as number),
+        0,
+      );
+      res.status(HttpStatus.OK).json({ cartItems, totalPrice });
     } catch (error) {
       next(error);
     }
