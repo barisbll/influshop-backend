@@ -215,10 +215,9 @@ export class ItemService {
       let publicId: string;
       if (itemGroup.imageLocation) {
         await this.imageUploader.deleteImage(itemGroup.imageLocation);
-        publicId = await this.imageUploader.updateImage(
+        publicId = await this.imageUploader.uploadImage(
           body.itemGroupImage,
           'influshop_items',
-          itemGroup.imageLocation,
         );
       } else {
         publicId = await this.imageUploader.uploadImage(body.itemGroupImage, 'influshop_items');
