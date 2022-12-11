@@ -42,7 +42,11 @@ export const createRouter = () => {
 
   router.put('/influencer/password', isAuth, settingsController.influencerPasswordUpdate);
 
+  router.get('/user/image', isAuth, settingsController.userImageRead);
+
   router.post('/user/image', isAuth, settingsController.userImageCreate);
+
+  router.get('/influencer/image', isAuth, settingsController.influencerImageRead);
 
   router.post('/influencer/image', isAuth, settingsController.influencerImageCreate);
 

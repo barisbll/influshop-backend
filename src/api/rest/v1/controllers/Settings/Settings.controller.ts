@@ -275,6 +275,17 @@ export class SettingsController {
     }
   };
 
+  userImageRead = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const imageLocation = await this.settingsService.userImageRead(decodedToken);
+      res.json({ message: 'Image Successfully Retrieved', imageLocation }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   userImageCreate = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const decodedToken = req.decodedToken as RefreshTokenRequest;
     const imageCreateRequest = req.body as { image: string };
@@ -285,6 +296,17 @@ export class SettingsController {
       };
       await this.settingsService.userImageCreate(validatedBody, decodedToken);
       res.json({ message: 'Image Successfully Added' }).status(HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  influencerImageRead = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+    const decodedToken = req.decodedToken as RefreshTokenRequest;
+
+    try {
+      const imageLocation = await this.settingsService.influencerImageRead(decodedToken);
+      res.json({ message: 'Image Successfully Retrieved', imageLocation }).status(HttpStatus.OK);
     } catch (err) {
       next(err);
     }
