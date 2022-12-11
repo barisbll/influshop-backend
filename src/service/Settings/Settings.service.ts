@@ -442,6 +442,22 @@ export class SettingsService {
     await this.dataSource.getRepository(Influencer).save(influencer);
   };
 
+  userImageRead = async (
+    decodedToken: RefreshTokenRequest,
+  ) => {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    return user.imageLocation;
+  };
+
   userImageCreate = async (
     imageCreateRequest: { image: string },
     decodedToken: RefreshTokenRequest,
@@ -457,6 +473,22 @@ export class SettingsService {
     }
 
     await this.settingsCRUDService.userImageCreate(imageCreateRequest.image, user);
+  };
+
+  influencerImageRead = async (
+    decodedToken: RefreshTokenRequest,
+  ) => {
+    const influencer = await this.dataSource.getRepository(Influencer).findOne({
+      where: {
+        id: decodedToken.id,
+      },
+    });
+
+    if (!influencer) {
+      throw new CustomError('Influencer Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    return influencer.imageLocation;
   };
 
   influencerImageCreate = async (
