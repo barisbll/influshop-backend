@@ -163,7 +163,8 @@ export class SettingsCRUDService {
     const user = clone(oldUser);
 
     if (user?.imageLocation) {
-      await this.imageUploader.updateImage(image, 'influshop_profile_images', user?.imageLocation);
+      await this.imageUploader.deleteImage(user?.imageLocation);
+      user.imageLocation = await this.imageUploader.uploadImage(image, 'influshop_profile_images');
     } else {
       user.imageLocation = await this.imageUploader.uploadImage(image, 'influshop_profile_images');
     }
@@ -175,7 +176,8 @@ export class SettingsCRUDService {
     const influencer = clone(oldInfluencer);
 
     if (influencer?.imageLocation) {
-      await this.imageUploader.updateImage(image, 'influshop_profile_images', influencer?.imageLocation);
+      await this.imageUploader.deleteImage(influencer?.imageLocation);
+      await this.imageUploader.uploadImage(image, 'influshop_profile_images');
     } else {
       influencer.imageLocation = await this.imageUploader.uploadImage(image, 'influshop_profile_images');
     }
