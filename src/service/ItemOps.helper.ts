@@ -91,7 +91,7 @@ export const mainPageItemsMapper = (
 ): MappedObject[] => {
   const mappedItems = items?.map((item) => {
     const favoritedItem = user?.favoriteItems?.find(
-      (favoriteItem) => (favoriteItem.item as Item).id === item.id,
+      (favoriteItem) => (favoriteItem.item as Item)?.id === item?.id,
     );
 
     if (item.itemGroup) {
@@ -106,7 +106,7 @@ export const mainPageItemsMapper = (
         available: (item.itemQuantity as number) > 0,
         averageStars: item.averageStars,
         commentsLength: item.totalComments,
-        isPinned: pinnedItemId === item.id,
+        isPinned: pinnedItemId === item?.id,
         influencerName: item.influencer?.username,
         influencerImage: item.influencer?.imageLocation,
         updatedAt: item.itemGroup.updatedAt,
